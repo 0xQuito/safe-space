@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Content Security Policy: no inline scripts from external origins, no eval -->
+<meta http-equiv="Content-Security-Policy"
+  content="default-src 'none';
+           style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+           font-src https://fonts.gstatic.com;
+           script-src 'self' 'unsafe-inline';
+           img-src 'none';
+           connect-src 'none';
+           form-action 'none';
+           base-uri 'none';">
+<!-- Prevent browser from guessing MIME types -->
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<!-- No referrer sent when navigating away -->
+<meta name="referrer" content="no-referrer">
+<!-- Prevent indexing by search engines -->
+<meta name="robots" content="noindex, nofollow">
+<!-- Prevent caching of potentially sensitive form data -->
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Safe Space</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.52);
+    --glass-border: rgba(255,255,255,0.78);
+    --glass-shadow: 0 8px 40px rgba(180,140,210,0.16), 0 1.5px 0 rgba(255,255,255,0.92) inset;
+    --input-bg: rgba(255,255,255,0.42);
+    --input-border: rgba(200,175,225,0.35);
+    --input-focus-border: rgba(175,115,205,0.6);
+    --input-focus-shadow: 0 0 0 4px rgba(175,115,205,0.11);
+    --pill-bg: rgba(255,255,255,0.38);
+    --pill-border: rgba(200,175,225,0.38);
+    --pill-sel-bg: rgba(175,115,205,0.13);
+    --pill-sel-border: rgba(165,95,195,0.55);
+    --pill-sel-text: #7a1fa0;
+    --accent-pink: #c468c4;
+    --accent-blue: #78aedd;
+    --text: #28203a;
+    --text-mid: #6b5478;
+    --text-soft: #a898b8;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    font-family: var(--font);
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 12% 8%,  rgba(228,188,248,0.72) 0%, transparent 48%),
+      radial-gradient(ellipse at 88% 92%, rgba(185,215,255,0.72) 0%, transparent 48%),
+      radial-gradient(ellipse at 55% 45%, rgba(255,220,240,0.38) 0%, transparent 55%),
+      linear-gradient(155deg, #f9e8f6 0%, #eeedfb 48%, #e2f0fc 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .orb { position: absolute; border-radius: 50%; filter: blur(72px); opacity: 0.3; animation: drift 15s ease-in-out infinite alternate; }
+  .orb-1 { width: 420px; height: 420px; background: rgba(215,160,248,0.55); top: -100px; left: -80px; animation-duration: 17s; }
+  .orb-2 { width: 340px; height: 340px; background: rgba(160,210,255,0.55); bottom: -80px; right: -60px; animation-duration: 13s; animation-delay: -6s; }
+  .orb-3 { width: 220px; height: 220px; background: rgba(255,195,235,0.5); top: 42%; left: 58%; animation-duration: 20s; animation-delay: -10s; }
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(28px,18px) scale(1.07); }
+  }
+
+  .container { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 52px 20px 80px; }
+
+  .header { text-align: center; margin-bottom: 38px; animation: fadeDown 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+  .logo-ring {
+    width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%;
+    background: var(--glass-bg); border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(24px) saturate(1.5); -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    box-shadow: 0 4px 22px rgba(190,110,200,0.2), 0 1px 0 rgba(255,255,255,0.95) inset;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-ring svg { width: 26px; height: 26px; stroke: rgba(155,75,180,0.82); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  h1 { font-size: 23px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+  .subtitle { font-size: 13.5px; color: var(--text-soft); margin-top: 5px; line-height: 1.55; font-weight: 400; }
+
+  .progress-wrap { display: flex; align-items: center; justify-content: center; margin-bottom: 26px; animation: fadeIn 0.5s ease 0.2s both; }
+  .prog-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(195,170,220,0.4); flex-shrink: 0; transition: all 0.38s cubic-bezier(0.34,1.56,0.64,1); }
+  .prog-line { width: 28px; height: 1.5px; background: rgba(195,170,220,0.28); flex-shrink: 0; transition: background 0.38s; }
+  .prog-dot.active { width: 22px; border-radius: 4px; background: var(--accent-pink); box-shadow: 0 0 10px rgba(196,104,196,0.45); }
+  .prog-dot.done   { background: var(--accent-blue); }
+  .prog-line.done  { background: rgba(120,174,221,0.45); }
+
+  .card {
+    background: var(--glass-bg); border: 1.5px solid var(--glass-border); border-radius: 28px; padding: 36px 32px;
+    backdrop-filter: blur(36px) saturate(1.5); -webkit-backdrop-filter: blur(36px) saturate(1.5);
+    box-shadow: var(--glass-shadow); animation: slideUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes slideUp  { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+
+  .step { display: none; }
+  .step.active { display: block; }
+  .step-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); margin-bottom: 5px; }
+  .step-hint  { font-size: 13.5px; color: var(--text-soft); margin-bottom: 24px; line-height: 1.55; }
+
+  .field { margin-bottom: 17px; }
+  label { display: block; font-size: 11px; font-weight: 600; color: var(--text-mid); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.75px; }
+  .opt-tag { font-size: 9.5px; font-weight: 500; background: rgba(195,170,220,0.18); color: var(--text-soft); padding: 2px 7px; border-radius: 20px; letter-spacing: 0.1px; margin-left: 5px; vertical-align: middle; border: 1px solid rgba(195,170,220,0.28); text-transform: none; }
+
+  input[type="text"], textarea {
+    width: 100%; padding: 12px 15px; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 15px;
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    font-family: var(--font); font-size: 14px; font-weight: 400; color: var(--text); outline: none; resize: none;
+    box-shadow: 0 2px 10px rgba(175,140,205,0.07), 0 1px 0 rgba(255,255,255,0.82) inset;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  input[type="text"]::placeholder, textarea::placeholder { color: var(--text-soft); }
+  input[type="text"]:focus, textarea:focus { border-color: var(--input-focus-border); background: rgba(255,255,255,0.68); box-shadow: var(--input-focus-shadow), 0 1px 0 rgba(255,255,255,0.9) inset; }
+  textarea { min-height: 90px; line-height: 1.5; }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 2px; }
+  .pill {
+    padding: 8px 14px; border-radius: 100px; background: var(--pill-bg); border: 1.5px solid var(--pill-border);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    color: var(--text-mid); font-family: var(--font); font-size: 12.5px; font-weight: 500;
+    cursor: pointer; user-select: none;
+    box-shadow: 0 1px 6px rgba(175,140,205,0.07), 0 1px 0 rgba(255,255,255,0.78) inset;
+    transition: all 0.2s cubic-bezier(0.34,1.4,0.64,1);
+  }
+  .pill:hover { background: rgba(255,255,255,0.6); border-color: var(--pill-sel-border); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(170,95,200,0.13), 0 1px 0 rgba(255,255,255,0.88) inset; }
+  .pill.selected { background: var(--pill-sel-bg); border-color: var(--pill-sel-border); color: var(--pill-sel-text); font-weight: 600; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(165,95,195,0.18), 0 1px 0 rgba(255,255,255,0.72) inset; }
+
+  .feel-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 2px; }
+  .feel-btn {
+    padding: 14px 8px; background: var(--pill-bg); border: 1.5px solid var(--pill-border); border-radius: 17px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 1px 6px rgba(175,140,205,0.07), 0 1px 0 rgba(255,255,255,0.78) inset;
+    cursor: pointer; text-align: center; font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--text-mid);
+    transition: all 0.2s cubic-bezier(0.34,1.4,0.64,1);
+  }
+  .feel-btn:hover { background: rgba(255,255,255,0.62); border-color: var(--pill-sel-border); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(170,95,200,0.13), 0 1px 0 rgba(255,255,255,0.88) inset; }
+  .feel-btn.selected { background: rgba(185,120,220,0.13); border-color: rgba(165,95,200,0.52); color: #6e1a92; font-weight: 600; box-shadow: 0 4px 16px rgba(165,95,195,0.18), 0 1px 0 rgba(255,255,255,0.7) inset; }
+
+  .info-box { background: rgba(185,220,255,0.2); border: 1.5px solid rgba(155,200,245,0.38); border-radius: 15px; padding: 12px 15px; margin-bottom: 18px; font-size: 13px; color: #3e6482; line-height: 1.55; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 rgba(255,255,255,0.78) inset; }
+  .char-hint { font-size: 11px; color: var(--text-soft); text-align: right; margin-top: 5px; }
+  .field-error { font-size: 12.5px; color: #a3346e; margin-top: 7px; line-height: 1.45; }
+  .field-error[hidden] { display: none; }
+  textarea.has-error { border-color: rgba(195,70,130,0.55); }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(195,170,225,0.32), transparent); margin: 20px 0; }
+
+  .btn-row { display: flex; gap: 9px; margin-top: 26px; }
+  .btn-back { flex: 0 0 auto; padding: 12px 17px; background: rgba(255,255,255,0.38); border: 1.5px solid rgba(195,175,220,0.38); border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); color: var(--text-mid); font-family: var(--font); font-size: 13.5px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 10px rgba(175,140,205,0.09), 0 1px 0 rgba(255,255,255,0.88) inset; transition: all 0.18s; }
+  .btn-back:hover { background: rgba(255,255,255,0.6); border-color: rgba(175,115,210,0.48); transform: translateY(-1px); }
+  .btn-next { flex: 1; padding: 13px; background: rgba(188,105,195,0.16); border: 1.5px solid rgba(188,105,195,0.44); border-radius: 13px; backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); color: #6e1090; font-family: var(--font); font-size: 14.5px; font-weight: 600; cursor: pointer; letter-spacing: -0.1px; box-shadow: 0 4px 20px rgba(188,105,195,0.18), 0 1px 0 rgba(255,255,255,0.88) inset; transition: all 0.22s cubic-bezier(0.34,1.3,0.64,1); }
+  .btn-next:hover { background: rgba(188,105,195,0.24); border-color: rgba(188,105,195,0.64); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(188,105,195,0.28), 0 1px 0 rgba(255,255,255,0.92) inset; }
+  .btn-next:active { transform: scale(0.98); }
+  .btn-submit { background: rgba(115,172,225,0.18); border-color: rgba(95,158,220,0.48); color: #194f82; box-shadow: 0 4px 20px rgba(115,172,225,0.18), 0 1px 0 rgba(255,255,255,0.88) inset; }
+  .btn-submit:hover { background: rgba(115,172,225,0.28); border-color: rgba(95,158,220,0.68); box-shadow: 0 8px 28px rgba(115,172,225,0.28), 0 1px 0 rgba(255,255,255,0.92) inset; }
+
+  .success-card { text-align: center; padding: 40px 32px; animation: slideUp 0.6s cubic-bezier(0.22,1,0.36,1) both; }
+  .success-icon { width: 68px; height: 68px; margin: 0 auto 20px; border-radius: 50%; background: rgba(115,172,225,0.17); border: 1.5px solid rgba(115,172,225,0.5); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); box-shadow: 0 6px 24px rgba(115,172,225,0.22), 0 1px 0 rgba(255,255,255,0.92) inset; display: flex; align-items: center; justify-content: center; animation: pop 0.5s cubic-bezier(0.34,1.8,0.64,1) 0.1s both; }
+  @keyframes pop { from { transform:scale(0.3); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .success-icon svg { width: 30px; height: 30px; stroke: #1e5e96; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .success-title { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; color: var(--text); margin-bottom: 9px; }
+  .success-text { font-size: 13.5px; color: var(--text-soft); line-height: 1.6; margin-bottom: 24px; }
+
+  .summary-glass { background: rgba(255,255,255,0.38); border: 1.5px solid rgba(215,195,235,0.48); border-radius: 20px; overflow: hidden; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 2px 14px rgba(175,140,205,0.09), 0 1px 0 rgba(255,255,255,0.88) inset; margin-bottom: 18px; text-align: left; }
+  .summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 17px; gap: 12px; border-bottom: 1px solid rgba(205,185,225,0.28); font-size: 13px; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .sk { color: var(--text-soft); font-weight: 500; white-space: nowrap; }
+  .summary-row .sv { color: var(--text); font-weight: 600; text-align: right; word-break: break-word; }
+
+  .btn-new { padding: 12px 30px; background: rgba(188,105,195,0.14); border: 1.5px solid rgba(188,105,195,0.42); border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); color: #6e1090; font-family: var(--font); font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 18px rgba(188,105,195,0.16), 0 1px 0 rgba(255,255,255,0.88) inset; transition: all 0.18s; }
+  .btn-new:hover { background: rgba(188,105,195,0.22); transform: translateY(-1px); }
+
+  .helpline-section { background: rgba(255,255,255,0.32); border: 1.5px solid rgba(215,195,235,0.45); border-radius: 22px; padding: 22px 22px 18px; margin-bottom: 20px; text-align: left; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 2px 16px rgba(175,140,205,0.1), 0 1px 0 rgba(255,255,255,0.88) inset; }
+  .helpline-intro { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .helpline-sub { font-size: 13px; color: var(--text-soft); margin-bottom: 16px; line-height: 1.45; }
+  .country-select-wrap { position: relative; }
+  .country-select-wrap select { width: 100%; padding: 12px 42px 12px 15px; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 14px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); font-family: var(--font); font-size: 14px; font-weight: 400; color: var(--text); outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; box-shadow: 0 2px 10px rgba(175,140,205,0.07), 0 1px 0 rgba(255,255,255,0.82) inset; transition: border-color 0.2s, box-shadow 0.2s; }
+  .country-select-wrap select:focus { border-color: var(--input-focus-border); background: rgba(255,255,255,0.68); box-shadow: var(--input-focus-shadow), 0 1px 0 rgba(255,255,255,0.9) inset; }
+  .select-arrow { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-soft); width: 18px; height: 18px; display: flex; align-items: center; }
+  .select-arrow svg { width: 18px; height: 18px; }
+  .helpline-result { margin-top: 14px; background: rgba(185,220,255,0.18); border: 1.5px solid rgba(145,195,245,0.4); border-radius: 16px; padding: 16px 18px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset; animation: fadeIn 0.35s ease both; }
+  .helpline-country { font-size: 11px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .helpline-lines { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .helpline-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .hl-name { font-size: 13px; color: var(--text-soft); font-weight: 500; flex: 1; min-width: 0; }
+  .hl-number { font-size: 15px; font-weight: 700; color: #194f82; letter-spacing: 0.2px; white-space: nowrap; background: rgba(255,255,255,0.55); border: 1.5px solid rgba(145,195,245,0.45); border-radius: 10px; padding: 5px 12px; text-decoration: none; display: inline-block; transition: background 0.18s; }
+  .hl-number:hover { background: rgba(255,255,255,0.85); }
+  .helpline-note { font-size: 11.5px; color: var(--text-soft); line-height: 1.5; }
+
+  /* Save / print buttons on the success screen */
+  .save-section { margin-bottom: 20px; }
+  .save-label { font-size: 13px; color: var(--text-mid); font-weight: 500; margin-bottom: 10px; }
+  .save-row { display: flex; gap: 9px; }
+  .save-row .btn-next { padding: 12px 10px; font-size: 13.5px; }
+  @media (max-width: 420px) { .save-row { flex-direction: column; } }
+  .save-hint { font-size: 11.5px; color: var(--text-soft); line-height: 1.5; margin-top: 9px; }
+  .email-panel { margin-top: 16px; padding: 18px; text-align: left; background: rgba(255,255,255,0.32); border: 1.5px solid rgba(215,195,235,0.45); border-radius: 20px; animation: fadeIn 0.3s ease both; }
+  .email-panel[hidden] { display: none; }
+  .email-note { margin: 12px 0 0; }
+  .email-note[hidden] { display: none; }
+  .email-field { margin: 16px 0 14px; }
+  .email-send { width: 100%; }
+  input[type="email"] {
+    width: 100%; padding: 12px 15px; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 15px;
+    font-family: var(--font); font-size: 14px; color: var(--text); outline: none;
+    box-shadow: 0 2px 10px rgba(175,140,205,0.07), 0 1px 0 rgba(255,255,255,0.82) inset;
+  }
+  input[type="email"]::placeholder { color: var(--text-soft); }
+  input[type="email"]:focus { border-color: var(--input-focus-border); background: rgba(255,255,255,0.68); box-shadow: var(--input-focus-shadow); }
+  input[type="email"].has-error { border-color: rgba(195,70,130,0.55); }
+  .link-btn { background: none; border: none; padding: 0; font: inherit; color: #6e1090; font-weight: 600; text-decoration: underline; cursor: pointer; }
+  #copyStatus { color: #2f6b45; font-weight: 600; }
+
+  /* Print / PDF copy of the report — uses the app's colours.
+     Solid colours stand in for the glass blur, which doesn't print. */
+  #printReport { display: none; }
+  @media print {
+    @page { size: A4; margin: 0; }
+    html, body { background: #f4ecfa !important; }
+    .orbs, .container { display: none !important; }
+    #printReport, #printReport * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    #printReport {
+      display: block; font-family: var(--font); color: var(--text);
+      min-height: 297mm; padding: 16mm 16mm 14mm;
+      background:
+        radial-gradient(ellipse at 10% 4%,  rgba(228,188,248,0.75) 0%, transparent 45%),
+        radial-gradient(ellipse at 92% 96%, rgba(185,215,255,0.75) 0%, transparent 45%),
+        linear-gradient(155deg, #f9e8f6 0%, #eeedfb 48%, #e2f0fc 100%);
+    }
+    .pr-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .pr-logo { width: 52px; height: 52px; border-radius: 50%; background: #fff; border: 1.5px solid #e7d6f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 3px 14px rgba(190,110,200,0.18); }
+    .pr-logo svg { width: 24px; height: 24px; stroke: #9b4bb4; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .pr-brand { font-size: 11px; font-weight: 600; letter-spacing: 0.9px; text-transform: uppercase; color: var(--accent-pink); }
+    .pr-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); line-height: 1.2; }
+    .pr-date { font-size: 12px; color: var(--text-mid); margin-top: 2px; }
+    .pr-bar { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--accent-pink), var(--accent-blue)); margin-bottom: 18px; }
+    .pr-note { font-size: 12.5px; line-height: 1.55; color: #3e6482; background: #e6f1fc; border: 1.5px solid #c4dcf5; border-radius: 14px; padding: 12px 15px; margin-bottom: 16px; }
+    .pr-note strong { color: #194f82; }
+    .pr-card { background: rgba(255,255,255,0.85); border: 1.5px solid #e7d6f1; border-radius: 18px; padding: 6px 18px; margin-bottom: 14px; break-inside: avoid; box-shadow: 0 2px 12px rgba(175,140,205,0.12); }
+    .pr-card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #7a1fa0; padding: 10px 0 6px; }
+    .pr-row { display: flex; gap: 14px; padding: 8px 0; border-top: 1px solid #efe4f6; font-size: 13px; break-inside: avoid; }
+    .pr-card-title + .pr-row { border-top: none; }
+    .pr-k { flex: 0 0 34%; color: var(--text-mid); font-weight: 500; }
+    .pr-v { flex: 1; color: var(--text); font-weight: 600; white-space: pre-wrap; word-break: break-word; }
+    .pr-row.pr-long { flex-direction: column; gap: 4px; }
+    .pr-row.pr-long .pr-v { font-weight: 500; line-height: 1.55; background: #faf5fd; border-radius: 10px; padding: 9px 12px; }
+    .pr-empty { color: var(--text-soft); font-weight: 400; }
+    .pr-foot { margin-top: 18px; font-size: 11px; color: var(--text-mid); text-align: center; line-height: 1.5; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <div class="logo-ring" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <h1>Safe Space</h1>
+    <p class="subtitle">You're safe here. Tell us what happened<br>and we'll help sort it out.</p>
+  </div>
+
+  <div class="progress-wrap" id="progress" role="progressbar" aria-label="Step progress">
+    <div class="prog-dot active" id="d0"></div>
+    <div class="prog-line" id="l0"></div>
+    <div class="prog-dot" id="d1"></div>
+    <div class="prog-line" id="l1"></div>
+    <div class="prog-dot" id="d2"></div>
+    <div class="prog-line" id="l2"></div>
+    <div class="prog-dot" id="d3"></div>
+    <div class="prog-line" id="l3"></div>
+    <div class="prog-dot" id="d4"></div>
+  </div>
+
+  <div class="card" id="mainCard">
+
+    <!-- Step 0 -->
+    <div class="step active" id="step0" role="region" aria-label="Step 1: Where it happened">
+      <div class="step-title">Where did this happen?</div>
+      <div class="step-hint">Let us know which game or app you were using.</div>
+      <div class="field">
+        <label for="gameName">Game or App Name</label>
+        <input type="text" id="gameName" autocomplete="off" spellcheck="false"
+               placeholder="e.g. Roblox, Fortnite, Minecraft" maxlength="60">
+      </div>
+      <div class="field">
+        <label>Platform <span class="opt-tag">optional</span></label>
+        <div class="pills" id="platformPills" role="group" aria-label="Select platform">
+          <div class="pill" role="button" tabindex="0" data-val="PC">PC</div>
+          <div class="pill" role="button" tabindex="0" data-val="PlayStation">PlayStation</div>
+          <div class="pill" role="button" tabindex="0" data-val="Xbox">Xbox</div>
+          <div class="pill" role="button" tabindex="0" data-val="Nintendo Switch">Switch</div>
+          <div class="pill" role="button" tabindex="0" data-val="Mobile">Mobile</div>
+          <div class="pill" role="button" tabindex="0" data-val="Tablet">Tablet</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-next" id="btn-step0-next">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step" id="step1" role="region" aria-label="Step 2: Your username">
+      <div class="step-title">Your username</div>
+      <div class="step-hint">This helps us understand how the stranger may have found you. You don't need to share your real name.</div>
+      <div class="field">
+        <label for="myHandle">Your Username or Gamer Tag</label>
+        <input type="text" id="myHandle" autocomplete="off" spellcheck="false"
+               placeholder="e.g. CoolPlayer99" maxlength="40">
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" id="btn-step1-back">Back</button>
+        <button class="btn-next" id="btn-step1-next">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step" id="step2" role="region" aria-label="Step 3: About the stranger">
+      <div class="step-title">About the stranger</div>
+      <div class="step-hint">Share as much or as little as you remember — every detail helps.</div>
+      <div class="field">
+        <label for="strangerName">Their Name or Nickname <span class="opt-tag">optional</span></label>
+        <input type="text" id="strangerName" autocomplete="off" spellcheck="false"
+               placeholder="What did they call themselves?" maxlength="60">
+      </div>
+      <div class="field">
+        <label for="strangerHandle">Their Username <span class="opt-tag">optional</span></label>
+        <input type="text" id="strangerHandle" autocomplete="off" spellcheck="false"
+               placeholder="e.g. DarkPlayer123" maxlength="60">
+      </div>
+      <div class="field">
+        <label>How old did they seem? <span class="opt-tag">optional</span></label>
+        <div class="pills" id="agePills" role="group" aria-label="Select age range">
+          <div class="pill" role="button" tabindex="0" data-val="About my age">About my age</div>
+          <div class="pill" role="button" tabindex="0" data-val="A teenager">A teenager</div>
+          <div class="pill" role="button" tabindex="0" data-val="A grown-up">A grown-up</div>
+          <div class="pill" role="button" tabindex="0" data-val="Not sure">Not sure</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" id="btn-step2-back">Back</button>
+        <button class="btn-next" id="btn-step2-next">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step" id="step3" role="region" aria-label="Step 4: What happened">
+      <div class="step-title">What happened?</div>
+      <div class="step-hint">You're being really brave. There are no wrong answers.</div>
+      <div class="info-box" role="note">
+        None of this is your fault. You haven't done anything wrong by telling someone.
+      </div>
+      <div class="field">
+        <label for="whatHappened">Tell us what happened <span class="opt-tag">in your own words</span></label>
+        <textarea id="whatHappened" autocomplete="off" spellcheck="true"
+                  placeholder="e.g. They asked me to share a photo, or they said something that made me feel uncomfortable…"
+                  maxlength="500" aria-describedby="happenedError"></textarea>
+        <div class="field-error" id="happenedError" role="alert" hidden>Please write a little about what happened, even just a few words.</div>
+        <div class="char-hint" id="charCount" aria-live="polite">0 / 500</div>
+      </div>
+      <div class="field">
+        <label>Did they ask for anything? <span class="opt-tag">select all that apply</span></label>
+        <div class="pills" id="askedPills" role="group" aria-label="What the stranger asked for">
+          <div class="pill" role="button" tabindex="0" data-val="My real name">My real name</div>
+          <div class="pill" role="button" tabindex="0" data-val="My age">My age</div>
+          <div class="pill" role="button" tabindex="0" data-val="My address">My address</div>
+          <div class="pill" role="button" tabindex="0" data-val="Photos or videos">Photos or videos</div>
+          <div class="pill" role="button" tabindex="0" data-val="To meet up">To meet up</div>
+          <div class="pill" role="button" tabindex="0" data-val="To keep it secret">To keep it secret</div>
+          <div class="pill" role="button" tabindex="0" data-val="Something else">Something else</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" id="btn-step3-back">Back</button>
+        <button class="btn-next" id="btn-step3-next">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step" id="step4" role="region" aria-label="Step 5: How you feel">
+      <div class="step-title">How are you feeling?</div>
+      <div class="step-hint">It's okay to feel more than one thing at once.</div>
+      <div class="feel-grid" id="feelGrid" role="group" aria-label="Select how you feel">
+        <div class="feel-btn" role="button" tabindex="0" data-val="Scared">Scared</div>
+        <div class="feel-btn" role="button" tabindex="0" data-val="Confused">Confused</div>
+        <div class="feel-btn" role="button" tabindex="0" data-val="Angry">Angry</div>
+        <div class="feel-btn" role="button" tabindex="0" data-val="Upset">Upset</div>
+        <div class="feel-btn" role="button" tabindex="0" data-val="Embarrassed">Embarrassed</div>
+        <div class="feel-btn" role="button" tabindex="0" data-val="Okay">I'm okay</div>
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <label for="extraNotes">Anything else to add? <span class="opt-tag">optional</span></label>
+        <input type="text" id="extraNotes" autocomplete="off" spellcheck="false"
+               placeholder="Any other details…" maxlength="200">
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" id="btn-step4-back">Back</button>
+        <button class="btn-next btn-submit" id="btn-submit">Submit Report</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Success screen -->
+  <div class="card success-card" id="successCard" style="display:none;" role="main" aria-label="Your report is ready">
+    <div class="success-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="success-title">Well done</div>
+    <p class="success-text">You were really brave for speaking up. Your report is ready below, but it hasn't been sent to anyone.<br><strong>Save it or email it to a trusted adult</strong> — a parent, carer or teacher — so they can help.</p>
+    <div class="summary-glass" id="summaryBox" role="region" aria-label="Your report summary"></div>
+
+    <div class="save-section">
+      <p class="save-label">Send your report to a grown-up:</p>
+      <div class="save-row">
+        <button class="btn-next" id="btn-print">Save as PDF</button>
+        <button class="btn-next btn-submit" id="btn-email-toggle" aria-expanded="false" aria-controls="emailPanel">Send by email</button>
+      </div>
+      <p class="save-hint">To save a PDF, choose <strong>“Save as PDF”</strong> in the print window that opens.</p>
+
+      <div class="email-panel" id="emailPanel" hidden>
+        <label>Who is it for? <span class="opt-tag">pick one or more</span></label>
+        <div class="pills" id="recipientPills" role="group" aria-label="Who the report is for">
+          <div class="pill" role="button" tabindex="0" aria-pressed="false" data-val="Parent or carer">Parent or carer</div>
+          <div class="pill" role="button" tabindex="0" aria-pressed="false" data-val="Teacher">Teacher</div>
+          <div class="pill" role="button" tabindex="0" aria-pressed="false" data-val="Police or authorities">Police or authorities</div>
+        </div>
+        <div class="info-box email-note" id="authoritiesNote" role="note" hidden>
+          Police and child-safety teams usually need a grown-up to report it with you. Send it to a parent or teacher too, and they can help you report it properly. If you're in danger right now, call your local emergency number.
+        </div>
+        <div class="field email-field">
+          <label for="emailTo">Their email address <span class="opt-tag">optional</span></label>
+          <input type="email" id="emailTo" autocomplete="off" spellcheck="false" maxlength="254"
+                 placeholder="e.g. name@school.org" aria-describedby="emailError">
+          <div class="field-error" id="emailError" role="alert" hidden>That email address doesn't look quite right. Check it, or leave it empty.</div>
+        </div>
+        <button class="btn-next btn-submit email-send" id="btn-email-send">Open my email app</button>
+        <p class="save-hint">This opens your email app with the report filled in. Nothing is sent until you press send there.</p>
+        <p class="save-hint">No email app? <button type="button" class="link-btn" id="btn-copy">Copy the report</button> and paste it into an email. <span id="copyStatus" aria-live="polite"></span></p>
+      </div>
+    </div>
+
+    <div class="helpline-section">
+      <p class="helpline-intro">If you feel unsafe right now, please tell a grown-up straight away.</p>
+      <p class="helpline-sub">Select your country to find your local helpline number.</p>
+      <div class="country-select-wrap">
+        <select id="countrySelect" aria-label="Select your country">
+          <option value="">Select your country…</option>
+        </select>
+        <div class="select-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="helpline-result" id="helplineResult" style="display:none;" role="region" aria-live="polite" aria-label="Helpline information">
+        <div class="helpline-country" id="hlCountry"></div>
+        <div class="helpline-lines" id="hlLines"></div>
+        <p class="helpline-note">Lines are free and confidential. You can also speak to a parent, carer or teacher.</p>
+      </div>
+    </div>
+
+    <button class="btn-new" id="btn-new-report">Start a new report</button>
+  </div>
+
+</div><!-- /container -->
+
+<!-- Filled in when a report is made; only shown when printing -->
+<div id="printReport" aria-hidden="true"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  /** Escape a string for safe insertion as text content (XSS prevention). */
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+
+  /** Sanitize a phone number so only safe characters remain for tel: links. */
+  function sanitizeTel(num) {
+    return num.replace(/[^0-9+\-\s()]/g, '');
+  }
+
+  /** Read and trim a text input safely. Returns empty string if not found. */
+  function val(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  // ── State ─────────────────────────────────────────────────────────────────
+
+  let currentStep = 0;
+  const TOTAL_STEPS = 5;
+  const state = { platform: null, age: null, asked: [], feelings: [] };
+
+  // ── Pill setup ────────────────────────────────────────────────────────────
+
+  function setupPills(containerId, stateKey, multi) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    container.querySelectorAll('.pill').forEach(function (p) {
+      function toggle() {
+        if (!multi) {
+          container.querySelectorAll('.pill').forEach(function (x) {
+            x.classList.remove('selected');
+            x.setAttribute('aria-pressed', 'false');
+          });
+          state[stateKey] = p.dataset.val;
+          p.classList.add('selected');
+          p.setAttribute('aria-pressed', 'true');
+        } else {
+          p.classList.toggle('selected');
+          var pressed = p.classList.contains('selected');
+          p.setAttribute('aria-pressed', String(pressed));
+          var v = p.dataset.val;
+          if (pressed) {
+            state[stateKey].push(v);
+          } else {
+            state[stateKey] = state[stateKey].filter(function (x) { return x !== v; });
+          }
+        }
+      }
+      p.addEventListener('click', toggle);
+      p.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      });
+      p.setAttribute('aria-pressed', 'false');
+    });
+  }
+
+  setupPills('platformPills', 'platform', false);
+  setupPills('agePills', 'age', false);
+  setupPills('askedPills', 'asked', true);
+
+  document.querySelectorAll('.feel-btn').forEach(function (b) {
+    function toggle() {
+      b.classList.toggle('selected');
+      var pressed = b.classList.contains('selected');
+      b.setAttribute('aria-pressed', String(pressed));
+      var v = b.dataset.val;
+      if (pressed) {
+        state.feelings.push(v);
+      } else {
+        state.feelings = state.feelings.filter(function (x) { return x !== v; });
+      }
+    }
+    b.addEventListener('click', toggle);
+    b.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+    b.setAttribute('aria-pressed', 'false');
+  });
+
+  // ── Character counter ─────────────────────────────────────────────────────
+
+  var textarea = document.getElementById('whatHappened');
+  var charCount = document.getElementById('charCount');
+  if (textarea && charCount) {
+    textarea.addEventListener('input', function () {
+      charCount.textContent = this.value.length + ' / 500';
+      if (this.value.trim()) showHappenedError(false);
+    });
+  }
+
+  // "What happened" is the one required field — a report needs a description
+  var happenedError = document.getElementById('happenedError');
+  function showHappenedError(show) {
+    happenedError.hidden = !show;
+    textarea.classList.toggle('has-error', show);
+    textarea.setAttribute('aria-invalid', show ? 'true' : 'false');
+  }
+
+  // ── Step navigation ───────────────────────────────────────────────────────
+
+  function goTo(step) {
+    var prev = document.getElementById('step' + currentStep);
+    if (prev) prev.classList.remove('active');
+    currentStep = step;
+    var next = document.getElementById('step' + currentStep);
+    if (next) next.classList.add('active');
+
+    var card = document.getElementById('mainCard');
+    if (card) {
+      card.style.animation = 'none';
+      void card.offsetHeight;
+      card.style.animation = 'slideUp 0.45s cubic-bezier(0.22,1,0.36,1) both';
+    }
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateProgress() {
+    for (var i = 0; i < TOTAL_STEPS; i++) {
+      var d = document.getElementById('d' + i);
+      if (d) {
+        d.classList.remove('active', 'done');
+        if (i < currentStep) d.classList.add('done');
+        else if (i === currentStep) d.classList.add('active');
+      }
+      if (i < TOTAL_STEPS - 1) {
+        var l = document.getElementById('l' + i);
+        if (l) l.classList.toggle('done', i < currentStep);
+      }
+    }
+  }
+
+  // Wire up nav buttons (no inline handlers)
+  document.getElementById('btn-step0-next').addEventListener('click', function () { goTo(1); });
+  document.getElementById('btn-step1-back').addEventListener('click', function () { goTo(0); });
+  document.getElementById('btn-step1-next').addEventListener('click', function () { goTo(2); });
+  document.getElementById('btn-step2-back').addEventListener('click', function () { goTo(1); });
+  document.getElementById('btn-step2-next').addEventListener('click', function () { goTo(3); });
+  document.getElementById('btn-step3-back').addEventListener('click', function () { goTo(2); });
+  document.getElementById('btn-step3-next').addEventListener('click', function () {
+    if (!textarea.value.trim()) {
+      showHappenedError(true);
+      textarea.focus();
+      return;
+    }
+    goTo(4);
+  });
+  document.getElementById('btn-step4-back').addEventListener('click', function () { goTo(3); });
+  document.getElementById('btn-submit').addEventListener('click', submitReport);
+  document.getElementById('btn-new-report').addEventListener('click', resetForm);
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+
+  function submitReport() {
+    var gameName     = val('gameName')      || '—';
+    var myHandle     = val('myHandle')      || '—';
+    var strangerName = val('strangerName')  || '—';
+    var strangerHdl  = val('strangerHandle')|| '—';
+    var happened     = val('whatHappened')  || '—';
+    var extra        = val('extraNotes')    || '—';
+
+    // Truncate display only — never truncate the data itself before storage
+    var happenedDisplay = happened.length > 65 ? happened.slice(0, 65) + '…' : happened;
+
+    var rows = [
+      ['Game / App',       gameName],
+      ['Platform',         state.platform || '—'],
+      ['Your username',    myHandle],
+      ["Stranger's name",  strangerName],
+      ["Stranger's tag",   strangerHdl],
+      ["Stranger's age",   state.age || '—'],
+      ['Asked for',        state.asked.length ? state.asked.join(', ') : '—'],
+      ['How I felt',       state.feelings.length ? state.feelings.join(', ') : '—'],
+      ['What happened',    happenedDisplay],
+      ['Extra notes',      extra],
+    ];
+
+    // All values passed through esc() to prevent XSS in the summary
+    var summaryHTML = rows.map(function (row) {
+      return '<div class="summary-row"><span class="sk">' + esc(row[0]) +
+             '</span><span class="sv">' + esc(row[1]) + '</span></div>';
+    }).join('');
+
+    var summaryBox = document.getElementById('summaryBox');
+    if (summaryBox) summaryBox.innerHTML = summaryHTML;
+
+    // Saved and printed copies get the full description, not the shortened one
+    var fullRows = rows.map(function (row) {
+      return row[0] === 'What happened' ? [row[0], happened] : row;
+    });
+    lastReport = { rows: fullRows, date: new Date() };
+    buildPrintReport(lastReport);
+
+    document.getElementById('mainCard').style.display = 'none';
+    document.getElementById('progress').style.display = 'none';
+    document.getElementById('successCard').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Save / print ──────────────────────────────────────────────────────────
+
+  var lastReport = null;
+  var ADULT_NOTE = 'A child made this report with Safe Space after something happened online. ' +
+    'Please stay calm, thank them for telling you, and help them report and block the person on the game or app.';
+
+  /** Fill the print-only copy using textContent, so typed text can't become HTML. */
+  function buildPrintReport(report) {
+    var box = document.getElementById('printReport');
+    box.textContent = '';
+    if (!report) return;
+
+    function el(tag, cls, text) {
+      var e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+
+    // Header: shield logo, title, date
+    var head = el('div', 'pr-head');
+    var logo = el('div', 'pr-logo');
+    var SVG = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(SVG, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    var path = document.createElementNS(SVG, 'path');
+    path.setAttribute('d', 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z');
+    svg.appendChild(path);
+    logo.appendChild(svg);
+    var titles = el('div');
+    titles.appendChild(el('div', 'pr-brand', 'Safe Space'));
+    titles.appendChild(el('div', 'pr-title', 'My online safety report'));
+    titles.appendChild(el('div', 'pr-date', 'Made on ' + report.date.toLocaleString()));
+    head.appendChild(logo);
+    head.appendChild(titles);
+    box.appendChild(head);
+    box.appendChild(el('div', 'pr-bar'));
+
+    var note = el('div', 'pr-note');
+    note.appendChild(el('strong', null, 'For the grown-up reading this: '));
+    note.appendChild(document.createTextNode(ADULT_NOTE));
+    box.appendChild(note);
+
+    // Group the answers into themed cards
+    var values = {};
+    report.rows.forEach(function (row) { values[row[0]] = row[1]; });
+    var groups = [
+      ['Where it happened', ['Game / App', 'Platform', 'Your username']],
+      ['About the person',  ["Stranger's name", "Stranger's tag", "Stranger's age", 'Asked for']],
+      ['What happened',     ['What happened', 'How I felt', 'Extra notes']]
+    ];
+    var LONG = ['What happened', 'Extra notes'];
+
+    groups.forEach(function (g) {
+      var card = el('div', 'pr-card');
+      card.appendChild(el('div', 'pr-card-title', g[0]));
+      g[1].forEach(function (key) {
+        var v = values[key] == null ? '—' : String(values[key]);
+        var row = el('div', 'pr-row' + (LONG.indexOf(key) !== -1 && v !== '—' ? ' pr-long' : ''));
+        row.appendChild(el('div', 'pr-k', key));
+        row.appendChild(el('div', 'pr-v' + (v === '—' ? ' pr-empty' : ''), v === '—' ? 'Not given' : v));
+        card.appendChild(row);
+      });
+      box.appendChild(card);
+    });
+
+    box.appendChild(el('div', 'pr-foot',
+      'Made with Safe Space. This report stays private until you choose to share it. ' +
+      'You were brave to speak up — none of this is your fault.'));
+  }
+
+  function reportAsText(report) {
+    var lines = ['SAFE SPACE REPORT', 'Made on ' + report.date.toLocaleString(), '', ADULT_NOTE, ''];
+    report.rows.forEach(function (row) {
+      lines.push(row[0] + ':');
+      lines.push('  ' + String(row[1]).replace(/\r?\n/g, '\r\n  '));
+      lines.push('');
+    });
+    return lines.join('\r\n');
+  }
+
+  function localDay(dt) {
+    return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+  }
+
+  // Save as PDF: the browser's print window has a "Save as PDF" option.
+  // The page title becomes the suggested PDF file name, so set it while printing.
+  document.getElementById('btn-print').addEventListener('click', function () {
+    if (!lastReport) return;
+    var oldTitle = document.title;
+    document.title = 'safe-space-report-' + localDay(lastReport.date);
+    window.print();
+    document.title = oldTitle;
+  });
+
+  // ── Email ─────────────────────────────────────────────────────────────────
+
+  var emailPanel  = document.getElementById('emailPanel');
+  var emailToggle = document.getElementById('btn-email-toggle');
+  var emailTo     = document.getElementById('emailTo');
+  var emailError  = document.getElementById('emailError');
+  var authNote    = document.getElementById('authoritiesNote');
+  var copyStatus  = document.getElementById('copyStatus');
+  var recipients  = [];
+
+  emailToggle.addEventListener('click', function () {
+    var open = emailPanel.hidden;
+    emailPanel.hidden = !open;
+    emailToggle.setAttribute('aria-expanded', String(open));
+  });
+
+  document.querySelectorAll('#recipientPills .pill').forEach(function (p) {
+    function toggle() {
+      var on = p.classList.toggle('selected');
+      p.setAttribute('aria-pressed', String(on));
+      var v = p.dataset.val;
+      recipients = on ? recipients.concat(v) : recipients.filter(function (x) { return x !== v; });
+      authNote.hidden = recipients.indexOf('Police or authorities') === -1;
+    }
+    p.addEventListener('click', toggle);
+    p.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+
+  // Strict check: also blocks ?, & and # so nobody can sneak extra fields into the email link
+  var EMAIL_RE = /^[^\s@<>,;:"?&#%()\[\]\\]+@[^\s@<>,;:"?&#%()\[\]\\]+\.[A-Za-z]{2,}$/;
+
+  function showEmailError(show) {
+    emailError.hidden = !show;
+    emailTo.classList.toggle('has-error', show);
+    emailTo.setAttribute('aria-invalid', show ? 'true' : 'false');
+  }
+  emailTo.addEventListener('input', function () { showEmailError(false); });
+
+  function emailBody(report) {
+    var intro = ['Hi,', '',
+      'Something happened online that I want to tell you about. Here is my report.', ''];
+    if (recipients.length) intro.push('This report is for: ' + recipients.join(', '), '');
+    return intro.join('\r\n') + '\r\n' + reportAsText(report);
+  }
+
+  document.getElementById('btn-email-send').addEventListener('click', function () {
+    if (!lastReport) return;
+    var to = emailTo.value.trim();
+    if (to && !EMAIL_RE.test(to)) { showEmailError(true); emailTo.focus(); return; }
+    var href = 'mailto:' + to +
+      '?subject=' + encodeURIComponent('Something happened online - my Safe Space report') +
+      '&body=' + encodeURIComponent(emailBody(lastReport));
+    var a = document.createElement('a');
+    a.href = href;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function () {
+    if (!lastReport) return;
+    var text = emailBody(lastReport);
+    function done(ok) {
+      copyStatus.textContent = ok ? 'Copied!' : 'Couldn\'t copy — try selecting the summary instead.';
+      setTimeout(function () { copyStatus.textContent = ''; }, 4000);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      done(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  function resetEmail() {
+    emailPanel.hidden = true;
+    emailToggle.setAttribute('aria-expanded', 'false');
+    emailTo.value = '';
+    showEmailError(false);
+    recipients = [];
+    authNote.hidden = true;
+    copyStatus.textContent = '';
+    document.querySelectorAll('#recipientPills .pill').forEach(function (p) {
+      p.classList.remove('selected');
+      p.setAttribute('aria-pressed', 'false');
+    });
+  }
+
+  // ── Reset ─────────────────────────────────────────────────────────────────
+
+  function resetForm() {
+    lastReport = null;
+    buildPrintReport(null);
+    resetEmail();
+    ['gameName','myHandle','strangerName','strangerHandle','whatHappened','extraNotes']
+      .forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+    if (charCount) charCount.textContent = '0 / 500';
+    showHappenedError(false);
+    state.platform = null; state.age = null; state.asked = []; state.feelings = [];
+    document.querySelectorAll('.pill,.feel-btn').forEach(function (el) {
+      el.classList.remove('selected');
+      el.setAttribute('aria-pressed', 'false');
+    });
+    var csel = document.getElementById('countrySelect');
+    if (csel) csel.value = '';
+    var res = document.getElementById('helplineResult');
+    if (res) res.style.display = 'none';
+    currentStep = 0;
+    document.getElementById('mainCard').style.display = 'block';
+    document.getElementById('progress').style.display = 'flex';
+    document.getElementById('successCard').style.display = 'none';
+    goTo(0);
+  }
+
+  // ── Global helpline data ──────────────────────────────────────────────────
+  // Numbers sourced from CRIN / Child Helpline International (crin.org)
+
+  var HELPLINES = {
+    "Albania":               [{ name: "Alo 116",                         number: "116" }],
+    "Algeria":               [{ name: "Je t'ecoute",                     number: "3033" }],
+    "Antigua & Barbuda":     [{ name: "Friends Hotline",                  number: "800 4357" }],
+    "Argentina":             [{ name: "Linea 102",                        number: "102" }],
+    "Armenia":               [{ name: "Child Protection Hotline",         number: "+374 60 52-66-60" }],
+    "Aruba":                 [{ name: "Fundacion Telefon pa Hubentud",    number: "131" }],
+    "Australia":             [{ name: "Kids Help Line",                   number: "1800 55 1800" }],
+    "Austria":               [{ name: "Rat auf Draht",                    number: "147" }],
+    "Azerbaijan":            [{ name: "ETIMAD Sumgayit",                  number: "23131" }],
+    "Belarus":               [{ name: "National helpline",                number: "8-801-100-8801" }],
+    "Belgium":               [{ name: "Kinder- en Jongerentelefoon",      number: "0800 15 111" },
+                              { name: "ChildFocus",                       number: "110" },
+                              { name: "Ecoute Enfants",                   number: "103" }],
+    "Bhutan":                [{ name: "Women and Child Helpline",         number: "1098" }],
+    "Bolivia":               [{ name: "Linea 156",                        number: "156" }],
+    "Bosnia and Herzegovina":[{ name: "Plavo Telefon",                    number: "080 05 03 05" }],
+    "Botswana":              [{ name: "Childline Botswana",               number: "3900 900" }],
+    "Brazil":                [{ name: "Disque 100",                       number: "100" },
+                              { name: "123Alo!",                          number: "0800 0 123 123" }],
+    "Brunei":                [{ name: "Helpline Kebajikan",               number: "141" }],
+    "Bulgaria":              [{ name: "Animus Association",               number: "116 111" }],
+    "Burkina Faso":          [{ name: "Allo",                             number: "116" }],
+    "Cambodia":              [{ name: "Child Helpline Cambodia",          number: "1280" }],
+    "Cameroon":              [{ name: "Lignes Vertes",                    number: "00237 222 23 25 50" }],
+    "Canada":                [{ name: "Kids Help Phone",                  number: "1-800-668-6868" },
+                              { name: "Tel-jeunes",                       number: "1-800-361-5085" }],
+    "Chile":                 [{ name: "Fono Niños",                       number: "147" },
+                              { name: "Linea libre",                      number: "1515" }],
+    "Colombia":              [{ name: "Línea 106",                        number: "106" },
+                              { name: "Línea de protección",              number: "141" }],
+    "Costa Rica":            [{ name: "Pani",                             number: "1147" }],
+    "Croatia":               [{ name: "Hrabri telefon",                   number: "116 111" }],
+    "Cuba":                  [{ name: "Línea de Emergencia",              number: "106" }],
+    "Cyprus":                [{ name: "SPAVO",                            number: "116 000" }],
+    "Czech Republic":        [{ name: "The Safety Line",                  number: "116 111" }],
+    "Denmark":               [{ name: "Børns Vilkår",                     number: "116 111" }],
+    "Egypt":                 [{ name: "Child Helpline",                   number: "160-00" }],
+    "Estonia":               [{ name: "Estonian Advice Centre",           number: "116 111" }],
+    "Fiji":                  [{ name: "National Child Helpline",          number: "1325" }],
+    "Finland":               [{ name: "Child and Youth Phone",            number: "116 111" }],
+    "France":                [{ name: "Allô Enfance En Danger",           number: "119" }],
+    "Gambia":                [{ name: "199 Helpline",                     number: "199" }],
+    "Georgia":               [{ name: "Public Health Foundation",         number: "116 111" }],
+    "Germany":               [{ name: "Nummer gegen Kummer",              number: "116 111" }],
+    "Greece":                [{ name: "Hamogelo",                         number: "116 111" }],
+    "Guinea":                [{ name: "Aguias",                           number: "116" }],
+    "Haiti":                 [{ name: "Jurimedia",                        number: "02755 1122" }],
+    "Hong Kong":             [{ name: "Against Child Abuse",              number: "+852 2755 1122" }],
+    "Hungary":               [{ name: "Kek Vonal",                        number: "116 111" }],
+    "Iceland":               [{ name: "Red Cross",                        number: "1717" }],
+    "India":                 [{ name: "Childline India",                  number: "1098" }],
+    "Indonesia":             [{ name: "TePSA",                            number: "1500771" }],
+    "Iran":                  [{ name: "Sedaye Yara",                      number: "42152" }],
+    "Iraq":                  [{ name: "Ministry of Labour",               number: "116" }],
+    "Ireland":               [{ name: "Child Line Ireland",               number: "1800 66 66 66" }],
+    "Israel":                [{ name: "ERAN",                             number: "1201" }],
+    "Italy":                 [{ name: "Telefono Azzurro",                 number: "19696" }],
+    "Jamaica":               [{ name: "Children's Coalition",             number: "888-429-5273" }],
+    "Japan":                 [{ name: "Childline Support Center",         number: "0120 99 7777" }],
+    "Jordan":                [{ name: "Child Helpline",                   number: "110" }],
+    "Kazakhstan":            [{ name: "Telefon 150",                      number: "150" }],
+    "Kenya":                 [{ name: "Childline Kenya",                  number: "116" }],
+    "Kyrgyzstan":            [{ name: "Child Rights Defenders League",    number: "+996 312 66 25 87" }],
+    "Latvia":                [{ name: "Child and Adolescent Helpline",    number: "116 111" }],
+    "Lesotho":               [{ name: "Helpline",                         number: "800 22 345" }],
+    "Liechtenstein":         [{ name: "147 sote",                         number: "147" }],
+    "Lithuania":             [{ name: "Vaiku Linjia",                     number: "116 111" }],
+    "Luxembourg":            [{ name: "Kanner-Jugendtelefon",             number: "116 111" }],
+    "Macedonia":             [{ name: "SOS Helpline",                     number: "0800 122 22" }],
+    "Madagascar":            [{ name: "Ligne 511",                        number: "511" }],
+    "Malawi":                [{ name: "Tithandizane Helpline",            number: "116" }],
+    "Maldives":              [{ name: "Child Helpline",                   number: "1412" }],
+    "Malta":                 [{ name: "Supportline",                      number: "179" }],
+    "Mauritius":             [{ name: "Child Helpline",                   number: "214 2451" }],
+    "Mexico":                [{ name: "Teléfono ANAR México",             number: "01800 911-1119" }],
+    "Moldova":               [{ name: "Telefon Copilului",                number: "116 111" }],
+    "Mongolia":              [{ name: "Child Helpline",                   number: "108" }],
+    "Mozambique":            [{ name: "Linha Fala Crianca",               number: "116" }],
+    "Myanmar":               [{ name: "Shwe Yamin Foundation",            number: "+95 1 525169" }],
+    "Namibia":               [{ name: "Lifeline/Childline Namibia",       number: "116" }],
+    "Nepal":                 [{ name: "Child Workers in Nepal",           number: "1098" }],
+    "Netherlands":           [{ name: "De Kindertelefoon",                number: "0800 0432" }],
+    "New Zealand":           [{ name: "What's Up?",                       number: "0800 942 8787" },
+                              { name: "Youthline",                        number: "0800 376 633" },
+                              { name: "Kidsline",                         number: "0800 543 754" }],
+    "Nicaragua":             [{ name: "Linea 133",                        number: "133" }],
+    "Nigeria":               [{ name: "Cece Yara Foundation",             number: "0800 800 8001" }],
+    "Norway":                [{ name: "Alarmtelefonen",                   number: "116 111" }],
+    "Pakistan":              [{ name: "Madadgaar National Helpline",      number: "1098" }],
+    "Palestine":             [{ name: "Sawa Child Helpline",              number: "121" }],
+    "Paraguay":              [{ name: "FONO Ayuda",                       number: "147" }],
+    "Peru":                  [{ name: "Fundación ANAR",                   number: "0800 22210" },
+                              { name: "Línea 100",                        number: "100" }],
+    "Philippines":           [{ name: "Bantay Bata",                      number: "163" }],
+    "Poland":                [{ name: "116111.pl",                        number: "116 111" }],
+    "Portugal":              [{ name: "SOS Criança",                      number: "116 111" }],
+    "Qatar":                 [{ name: "Aman",                             number: "919" }],
+    "Romania":               [{ name: "Telefonul Copilului",              number: "116 111" }],
+    "Russia":                [{ name: "Telefon Doveria",                  number: "8-800-2000-122" }],
+    "Saudi Arabia":          [{ name: "Child Helpline",                   number: "116 111" }],
+    "Senegal":               [{ name: "Allo",                             number: "116" }],
+    "Serbia":                [{ name: "NADEL",                            number: "116 111" }],
+    "Singapore":             [{ name: "Tinkle Friend",                    number: "1800 2744 788" }],
+    "Slovakia":              [{ name: "Linka detskej Istoty",             number: "116 111" }],
+    "Slovenia":              [{ name: "TOM Telefon",                      number: "116 111" }],
+    "South Africa":          [{ name: "Childline South Africa",           number: "0800 055 555" }],
+    "South Korea":           [{ name: "Youth Hotline",                    number: "1388" }],
+    "Spain":                 [{ name: "Fundación ANAR",                   number: "900 20 20 10" }],
+    "Sri Lanka":             [{ name: "Childline Sri Lanka",              number: "1629" }],
+    "Sudan":                 [{ name: "Child Helpline",                   number: "9696" }],
+    "Suriname":              [{ name: "Kinder- en Jongerentelefoon",      number: "123" }],
+    "Sweden":                [{ name: "BRIS",                             number: "116 111" }],
+    "Switzerland":           [{ name: "Beratung + Hilfe",                 number: "147" }],
+    "Taiwan":                [{ name: "113 Protection Hotline",           number: "113" }],
+    "Tanzania":              [{ name: "C-Sema",                           number: "116" }],
+    "Thailand":              [{ name: "ChildLine Thailand",               number: "1387" }],
+    "Togo":                  [{ name: "Allo",                             number: "1011" }],
+    "Trinidad & Tobago":     [{ name: "ChildLine",                        number: "131" }],
+    "Turkey":                [{ name: "Genclik Destek Hatti",             number: "0850 455 00 70" }],
+    "Uganda":                [{ name: "Sauti",                            number: "116" }],
+    "Ukraine":               [{ name: "La Strada Ukraine",                number: "116 111" }],
+    "United Arab Emirates":  [{ name: "Dubai Foundation for Women & Children", number: "04-6060300" }],
+    "United Kingdom":        [{ name: "ChildLine UK",                     number: "0800 1111" },
+                              { name: "Samaritans",                       number: "116 123" },
+                              { name: "The Mix",                          number: "0808 808 4994" }],
+    "United States":         [{ name: "Childhelp USA",                    number: "1-800-422-4453" },
+                              { name: "Crisis Text Line",                  number: "Text 741741" },
+                              { name: "Boys Town Hotline",                number: "800-448-3000" }],
+    "Uruguay":               [{ name: "Linea Azul",                       number: "800 50 50" }],
+    "Vanuatu":               [{ name: "Youtline",                         number: "087777" }],
+    "Vietnam":               [{ name: "Child Helpline Vietnam",           number: "111" }],
+    "Zambia":                [{ name: "Childline",                        number: "116" }],
+    "Zimbabwe":              [{ name: "Childline",                        number: "116" }]
+  };
+
+  // Populate dropdown safely — no innerHTML
+  var csel = document.getElementById('countrySelect');
+  Object.keys(HELPLINES).sort().forEach(function (country) {
+    var opt = document.createElement('option');
+    opt.value = country;
+    opt.textContent = country; // textContent, not innerHTML
+    csel.appendChild(opt);
+  });
+
+  csel.addEventListener('change', function () {
+    showHelpline(this.value);
+  });
+
+  function showHelpline(country) {
+    var res = document.getElementById('helplineResult');
+    if (!country || !HELPLINES[country]) {
+      res.style.display = 'none';
+      return;
+    }
+
+    var lines = HELPLINES[country];
+
+    // Set country label safely
+    document.getElementById('hlCountry').textContent = country;
+
+    // Build lines using DOM methods — no innerHTML with user/data values
+    var container = document.getElementById('hlLines');
+    container.innerHTML = ''; // safe — we rebuild with DOM nodes only
+    lines.forEach(function (line) {
+      var row  = document.createElement('div');
+      row.className = 'helpline-line';
+
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'hl-name';
+      nameSpan.textContent = line.name; // textContent prevents XSS
+
+      var numLink = document.createElement('a');
+      numLink.className = 'hl-number';
+      // Sanitize tel: to only digits, +, -, spaces, parens
+      numLink.href = 'tel:' + sanitizeTel(line.number).replace(/\s/g, '');
+      numLink.textContent = line.number; // textContent prevents XSS
+      numLink.setAttribute('rel', 'noopener noreferrer');
+
+      row.appendChild(nameSpan);
+      row.appendChild(numLink);
+      container.appendChild(row);
+    });
+
+    res.style.display = 'block';
+    res.style.animation = 'none';
+    void res.offsetHeight;
+    res.style.animation = 'fadeIn 0.35s ease both';
+  }
+
+})(); // end IIFE — no globals exposed
+</script>
+</body>
+</html>
