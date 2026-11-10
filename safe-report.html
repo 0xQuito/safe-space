@@ -204,7 +204,15 @@
   .hl-missing[hidden], .helpline-note[hidden] { display: none; }
   .hl-search { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: #6e1090; text-decoration: none; background: rgba(188,105,195,0.12); border: 1.5px solid rgba(188,105,195,0.38); border-radius: 11px; padding: 8px 13px; }
   .hl-search:hover { background: rgba(188,105,195,0.2); }
-  .hl-gap { margin-top: 14px; }
+  .helpline-lines { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .helpline-lines:empty { display: none; }
+  .helpline-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .hl-name { font-size: 13px; color: var(--text-mid); font-weight: 500; flex-shrink: 0; }
+  .hl-value { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; text-align: right; font-size: 12.5px; color: var(--text-mid); }
+  .hl-or { font-size: 11.5px; color: var(--text-soft); }
+  .hl-number { font-size: 15px; font-weight: 700; color: #194f82; letter-spacing: 0.2px; white-space: nowrap; background: rgba(255,255,255,0.65); border: 1.5px solid rgba(145,195,245,0.5); border-radius: 10px; padding: 5px 12px; text-decoration: none; display: inline-block; transition: background 0.18s; }
+  .hl-number:hover { background: rgba(255,255,255,0.9); }
+  .helpline-line.hl-main .hl-number { font-size: 19px; padding: 7px 16px; }
   .hl-search-tip { font-size: 11px; color: var(--text-soft); margin-top: 7px; line-height: 1.45; }
   .select-arrow { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-soft); width: 18px; height: 18px; display: flex; align-items: center; }
   .select-arrow svg { width: 18px; height: 18px; }
@@ -482,12 +490,13 @@
                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="countrySuggest">
         <ul class="country-suggest" id="countrySuggest" role="listbox" aria-label="Matching countries" hidden></ul>
       </div>
-      <div class="helpline-result" id="helplineResult" style="display:none;" role="region" aria-live="polite" aria-label="Emergency number search">
+      <div class="helpline-result" id="helplineResult" style="display:none;" role="region" aria-live="polite" aria-label="Emergency numbers">
         <div class="helpline-country" id="hlCountry"></div>
-        <p class="hl-missing">Tap below to see the emergency phone number on Google.</p>
+        <div class="helpline-lines" id="hlLines"></div>
+        <p class="hl-missing" id="hlMissing" hidden>We don't have numbers saved for that place. If you're online, try a search:</p>
+        <p class="helpline-note">Only call if you or someone else is in danger right now. If you're not in danger but feel worried, talk to a parent, carer or teacher.</p>
         <a class="hl-search" id="hlSearch" target="_blank" rel="noopener noreferrer"></a>
-        <p class="helpline-note hl-gap">Only call the emergency number if you or someone else is in danger right now. If you're not in danger but feel worried, talk to a parent, carer or teacher.</p>
-        <p class="hl-search-tip">Search results aren't checked by Safe Space. Look for an official or government website.</p>
+        <p class="hl-search-tip" id="hlTip"></p>
       </div>
     </div>
 
@@ -931,36 +940,264 @@
     goTo(0);
   }
 
-  // ── Countries ─────────────────────────────────────────────────────────────
-  // Names only. We don't store phone numbers: the page links to a Google search
-  // for each country's emergency number, so it's never out of date.
+  // ── Countries and emergency numbers ───────────────────────────────────────
 
-  var COUNTRIES = [
-    'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia',
-    'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium',
-    'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria',
-    'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad',
-    'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czechia',
-    'Democratic Republic of the Congo', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor',
-    'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji',
-    'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala',
-    'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India',
-    'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan',
-    'Kazakhstan', 'Kenya', 'Kiribati', 'Kosovo', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho',
-    'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Macau', 'Madagascar', 'Malawi', 'Malaysia',
-    'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova',
-    'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal',
-    'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway',
-    'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines',
-    'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis',
-    'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe',
-    'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
-    'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan',
-    'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga',
-    'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine',
-    'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City',
-    'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
-  ];
+  // Police, Ambulance, Fire for each country or territory.
+  // Source: Wikipedia, "List of emergency telephone numbers" (CC BY-SA 4.0), read 2026-11-10.
+  // Stored in the page so it works with no internet connection.
+  var EMERGENCY = {
+"Abkhazia": ["102", "103", "101"],
+    "Afghanistan": ["119", "112", "119"],
+    "Akrotiri and Dhekelia": ["112 or 999", "112 or 999", "112 or 999"],
+    "Åland Islands": ["112", "112", "112"],
+    "Albania": ["129", "127", "128"],
+    "Algeria": ["1548", "14", "14"],
+    "American Samoa": ["911", "911", "911"],
+    "Andorra": ["110", "116", "118"],
+    "Angola": ["113", "112/116", "115"],
+    "Anguilla": ["911", "911", "911"],
+    "Antarctica": ["USA McMurdo Station: 911 (fire and medical emergency dispatch)", "USA McMurdo Station: 911 (fire and medical emergency dispatch)", "USA McMurdo Station: 911 (fire and medical emergency dispatch)"],
+    "Antigua and Barbuda": ["911 or 999", "911 or 999", "911 or 999"],
+    "Argentina": ["911", "911", "911"],
+    "Armenia": ["112 or 911", "112 or 911", "112 or 911"],
+    "Aruba": ["911", "911", "911"],
+    "Ascension Island": ["999", "999", "999"],
+    "Australia": ["000", "000", "000"],
+    "Austria": ["112 or 133", "144", "122"],
+    "Azerbaijan": ["112 or 102", "112 or 103", "112 or 101"],
+    "Bahamas": ["911 or 919", "911 or 919", "911 or 919"],
+    "Bahrain": ["999", "999", "999"],
+    "Bangladesh": ["999", "999", "999"],
+    "Barbados": ["211", "511", "311"],
+    "Belarus": ["102", "103", "101"],
+    "Belgium": ["101 or 112", "112", "112"],
+    "Belize": ["911", "911", "911"],
+    "Benin": ["117", "112", "118"],
+    "Bermuda": ["911", "911", "911"],
+    "Bhutan": ["113", "112", "110"],
+    "Bolivia": ["911", "911", "911"],
+    "Bosnia and Herzegovina": ["122", "124", "123"],
+    "Botswana": ["999", "997", "998"],
+    "Brazil": ["190", "192", "193"],
+    "British Indian Ocean Territory": ["112 or 999", "112 or 999", "112 or 999"],
+    "British Virgin Islands": ["911 or 999", "911 or 999", "911 or 999"],
+    "Brunei": ["993", "991", "995"],
+    "Bulgaria": ["112 or 166", "112 or 150", "112 or 160"],
+    "Burkina Faso": ["17", "112", "18"],
+    "Burundi": ["117", "112", "118"],
+    "Cambodia": ["117", "119", "118"],
+    "Cameroon": ["112", "112", "112"],
+    "Canada": ["911", "911", "911"],
+    "Cape Verde": ["132", "130", "131"],
+    "Caribbean Netherlands": ["911", "911", "911"],
+    "Cayman Islands": ["911", "911", "911"],
+    "Central African Republic": ["117", "1220", "118"],
+    "Chad": ["17", "2251-4242", "18"],
+    "Chile": ["133", "131", "132"],
+    "China": ["110", "120", "119"],
+    "Christmas Island": ["000", "000", "000"],
+    "Colombia": ["112", "125", "119"],
+    "Comoros": ["17", "772-03-73", "18"],
+    "Congo": ["117", "", "118"],
+    "Cook Islands": ["999", "999", "999"],
+    "Costa Rica": ["911", "911", "911"],
+    "Croatia": ["112 or 192", "112 or 194", "112 or 193"],
+    "Cuba": ["106", "104", "105"],
+    "Curacao": ["911", "910 and 912", "911"],
+    "Cyprus": ["112 or 199", "112 or 199", "112 or 199"],
+    "Czechia": ["112 or 158", "112 or 155", "112 or 150"],
+    "Democratic Republic of the Congo": ["112", "", "118"],
+    "Denmark": ["112", "112", "112"],
+    "Djibouti": ["17", "19", "18"],
+    "Dominica": ["999", "999", "999"],
+    "Dominican Republic": ["911", "911", "911"],
+    "East Timor": ["112", "112", "112"],
+    "Ecuador": ["911", "911", "911"],
+    "Egypt": ["112 or 122", "123", "180"],
+    "El Salvador": ["911", "132", "913"],
+    "Equatorial Guinea": ["114", "115", "112"],
+    "Eritrea": ["113", "114", "116"],
+    "Estonia": ["112", "112", "112"],
+    "Eswatini": ["999", "977", "933"],
+    "Ethiopia": ["911", "911", "911"],
+    "Falkland Islands": ["112 or 999", "112 or 999", "112 or 999"],
+    "Faroe Islands": ["112", "112", "112"],
+    "Fiji": ["911", "911", "911"],
+    "Finland": ["112", "112", "112"],
+    "France": ["17", "112 or 15", "112 or 18"],
+    "French Guiana": ["112", "112", "112"],
+    "French Polynesia": ["112", "112", "112"],
+    "Gabon": ["1730", "1300", "18"],
+    "Gambia": ["117", "116", "118"],
+    "Georgia": ["112", "112", "112"],
+    "Germany": ["110", "112", "112"],
+    "Ghana": ["112", "112", "112"],
+    "Gibraltar": ["199 or 112 or 999", "190 or 112 or 999", "190 or 112 or 999"],
+    "Greece": ["100 or 112", "166 or 112", "199 or 112"],
+    "Greenland": ["112", "112", "112"],
+    "Grenada": ["911", "911", "911"],
+    "Guadeloupe": ["112", "112", "112"],
+    "Guam": ["911", "911", "911"],
+    "Guatemala": ["110", "122 CBV (national) / 123 CBM (municipal local only) / 1554 ASOBOMBD (municipalit…", "122 CBV (national) / 123 CBM (municipal local only) / 1554 ASOBOMBD (municipalit…"],
+    "Guernsey": ["112 or 999", "112 or 999", "112 or 999"],
+    "Guinea": ["117", "18", "442-020"],
+    "Guinea-Bissau": ["112", "112", "112"],
+    "Guyana": ["911", "913", "912"],
+    "Haiti": ["114", "116", "115"],
+    "Honduras": ["911", "195", "198"],
+    "Hong Kong": ["999", "999", "999"],
+    "Hungary": ["112 or 107", "112 or 104", "112 or 105"],
+    "Iceland": ["112", "112", "112"],
+    "India": ["112", "112", "112"],
+    "Indonesia": ["112", "112", "112"],
+    "Iran": ["110", "115", "125"],
+    "Iraq": ["112 or 911", "112 or 911", "112 or 911"],
+    "Ireland": ["112 or 999", "112 or 999", "112 or 999"],
+    "Isle of Man": ["112 or 999", "112 or 999", "112 or 999"],
+    "Israel": ["100", "101", "102"],
+    "Italy": ["112", "112", "112"],
+    "Ivory Coast": ["110 or 111 or 170", "185", "180"],
+    "Jamaica": ["119", "110", "110"],
+    "Japan": ["110", "119", "119"],
+    "Jersey": ["112 or 999", "112 or 999", "112 or 999"],
+    "Jordan": ["911", "911", "911"],
+    "Kazakhstan": ["112", "112", "112"],
+    "Kenya": ["112 or 999 or 911", "112 or 999 or 911", "112 or 999 or 911"],
+    "Kiribati": ["100 or 999", "100 or 999", "100 or 999"],
+    "Kosovo": ["192", "194", "193"],
+    "Kuwait": ["112", "112", "112"],
+    "Kyrgyzstan": ["112", "112", "112"],
+    "Laos": ["191", "195", "190"],
+    "Latvia": ["112", "112", "112"],
+    "Lebanon": ["999 or 112", "140", "175"],
+    "Lesotho": ["123", "121", "122"],
+    "Liberia": ["911", "911", "911"],
+    "Libya": ["1515", "1515", "1515"],
+    "Liechtenstein": ["117", "144", "118"],
+    "Lithuania": ["112", "112", "112"],
+    "Luxembourg": ["112", "112", "112"],
+    "Macau": ["999", "999", "999"],
+    "Madagascar": ["117", "124", "118"],
+    "Malawi": ["997", "998", "999"],
+    "Malaysia": ["999", "999", "999"],
+    "Maldives": ["911", "911", "911"],
+    "Mali": ["17", "15", "18"],
+    "Malta": ["112", "112", "112"],
+    "Marshall Islands": ["911", "911", "911"],
+    "Martinique": ["112", "112", "112"],
+    "Mauritania": ["117", "101", "118"],
+    "Mauritius": ["112", "114", "115"],
+    "Mayotte": ["112", "112", "112"],
+    "Mexico": ["911", "911", "911"],
+    "Micronesia": ["911", "911", "911"],
+    "Moldova": ["112", "112", "112"],
+    "Monaco": ["17", "112 or 18", "112 or 18"],
+    "Mongolia": ["105", "105", "105"],
+    "Montenegro": ["122 or 112", "124 or 112", "123 or 112"],
+    "Montserrat": ["911 or 999", "911 or 999", "911 or 999"],
+    "Morocco": ["19", "15", "15"],
+    "Mozambique": ["119", "117", "198"],
+    "Myanmar": ["999", "999", "999"],
+    "Namibia": ["10 111", "depends on town/city", "depends on town/city"],
+    "Nauru": ["110", "111", "112"],
+    "Nepal": ["100", "102", "101"],
+    "Netherlands": ["112", "112", "112"],
+    "New Caledonia": ["112", "112", "112"],
+    "New Zealand": ["111", "111", "111"],
+    "Nicaragua": ["118", "128", "115"],
+    "Niger": ["17", "15", "18"],
+    "Nigeria": ["112", "112", "112"],
+    "Niue": ["(+683) 4333", "(+683) 4202", "(+683) 4133"],
+    "North Korea": ["local numbers only", "local numbers only", "110 or 8119"],
+    "North Macedonia": ["192 or 112", "194 or 112", "193 or 112"],
+    "Northern Cyprus": ["155", "112", "199"],
+    "Northern Mariana Islands": ["911", "911", "911"],
+    "Norway": ["112", "113", "110"],
+    "Oman": ["9999", "9999", "9999"],
+    "Pakistan": ["15", "115 and 1122", "16"],
+    "Palau": ["911", "911", "911"],
+    "Palestine": ["100", "101", "102"],
+    "Panama": ["911", "911", "911"],
+    "Papua New Guinea": ["112", "111", "110"],
+    "Paraguay": ["911", "911", "911"],
+    "Peru": ["911", "911", "911"],
+    "Philippines": ["911", "911", "911"],
+    "Poland": ["997 or 112", "999 or 112", "998 or 112"],
+    "Portugal": ["112", "112", "112"],
+    "Puerto Rico": ["911", "911", "911"],
+    "Qatar": ["999", "999", "999"],
+    "Réunion": ["112", "112", "112"],
+    "Romania": ["112", "112", "112"],
+    "Russia": ["102 or 112", "103 or 112", "101 or 112"],
+    "Rwanda": ["112", "912", "112"],
+    "Saint Barthélemy": ["17", "17", "18"],
+    "Saint Helena": ["999", "999", "999"],
+    "Saint Kitts and Nevis": ["911", "911", "911"],
+    "Saint Lucia": ["911 or 999", "911 or 999", "911 or 999"],
+    "Saint Martin": ["17", "15", "18"],
+    "Saint Pierre and Miquelon": ["112", "112", "112"],
+    "Saint Vincent and the Grenadines": ["999 or 911 or 112", "999 or 911 or 112", "999 or 911 or 112"],
+    "Samoa": ["999", "999", "999"],
+    "San Marino": ["112 or 113", "118", "115"],
+    "Sao Tome and Principe": ["112", "112", "112"],
+    "Saudi Arabia": ["911", "911", "911"],
+    "Senegal": ["17", "18", "1515"],
+    "Serbia": ["192 or 112", "194", "193"],
+    "Seychelles": ["112 or 999", "112 or 999", "112 or 999"],
+    "Sierra Leone": ["019", "999", "999"],
+    "Singapore": ["999", "995", "995"],
+    "Sint Maarten": ["911", "912", "919"],
+    "Slovakia": ["112 or 158", "112 or 155", "112 or 150"],
+    "Slovenia": ["113", "112", "112"],
+    "Solomon Islands": ["911 or 999", "911 or 999", "911 or 999"],
+    "Somalia": ["888", "999", "555"],
+    "South Africa": ["10 111", "10 177", "10 177"],
+    "South Georgia and the South Sandwich Islands": ["999", "999", "999"],
+    "South Korea": ["112", "119", "119"],
+    "South Ossetia": ["102", "103", "101"],
+    "South Sudan": ["999", "999", "999"],
+    "Spain": ["112", "112", "112"],
+    "Sri Lanka": ["119", "110", "110"],
+    "Sudan": ["999", "999", "999"],
+    "Suriname": ["115", "115", "115"],
+    "Sweden": ["112", "112", "112"],
+    "Switzerland": ["117", "144", "118"],
+    "Syria": ["112", "110", "113"],
+    "Taiwan": ["110", "119", "119"],
+    "Tajikistan": ["112", "112", "112"],
+    "Tanzania": ["112", "114", "115"],
+    "Thailand": ["191", "1669", "199"],
+    "Togo": ["117", "8200", "118"],
+    "Tokelau": ["(+690) 2116", "(+690) 2112", ""],
+    "Tonga": ["911", "911", "911"],
+    "Transnistria": ["102", "103", "101"],
+    "Trinidad and Tobago": ["999 or 911", "811", "990"],
+    "Tristan da Cunha": ["999", "911", "999"],
+    "Tunisia": ["197", "190", "198"],
+    "Turkey": ["112 or 911 or 153", "112 or 911", "112 or 911"],
+    "Turkmenistan": ["02", "03", "01"],
+    "Turks and Caicos": ["911", "911", "911"],
+    "Tuvalu": ["911", "911", "911"],
+    "U.S. Virgin Islands": ["911", "911", "911"],
+    "Uganda": ["112", "911", "112"],
+    "Ukraine": ["102", "103", "101"],
+    "United Arab Emirates": ["999", "998", "997"],
+    "United Kingdom": ["999 or 112", "999 or 112", "999 or 112"],
+    "United States": ["911", "911", "911"],
+    "Uruguay": ["911", "911", "911"],
+    "Uzbekistan": ["102", "103", "101"],
+    "Vanuatu": ["111", "112", "113"],
+    "Vatican City": ["112", "112", "112"],
+    "Venezuela": ["911 and 171", "911 and 171", "911 and 171"],
+    "Vietnam": ["113", "115", "114"],
+    "Wallis and Futuna": ["15", "15", "15"],
+    "Western Sahara": ["150", "150", "150"],
+    "Yemen": ["194", "191", "191"],
+    "Zambia": ["999", "999", "999"],
+    "Zimbabwe": ["999", "999", "999"]
+  };
+
+  var COUNTRIES = Object.keys(EMERGENCY);
 
   // ── Country search ────────────────────────────────────────────────────────
   // Kids can type their country in any case ("FRANCE", "france", "FrAnCe").
@@ -1120,6 +1357,57 @@
     if (this.value.trim()) showHelpline(findCountry(this.value), this.value);
   });
 
+  /**
+   * Show Police / Ambulance / Fire rows. If all three are the same, show one big
+   * "Emergency" row instead. Phone numbers become tap-to-call buttons.
+   */
+  function renderNumbers(nums) {
+    var box = document.getElementById('hlLines');
+    box.textContent = '';
+    if (!nums) return;
+
+    var same = nums[0] && nums[0] === nums[1] && nums[1] === nums[2];
+    var rows = same ? [['Emergency', nums[0]]]
+                    : [['Police', nums[0]], ['Ambulance', nums[1]], ['Fire', nums[2]]];
+
+    rows.forEach(function (r) {
+      var row = document.createElement('div');
+      row.className = 'helpline-line' + (same ? ' hl-main' : '');
+      var name = document.createElement('span');
+      name.className = 'hl-name';
+      name.textContent = r[0];
+      var val = document.createElement('span');
+      val.className = 'hl-value';
+      fillNumberText(val, r[1] || 'Not listed');
+      row.appendChild(name);
+      row.appendChild(val);
+      box.appendChild(row);
+    });
+  }
+
+  /** "112 or 999" -> [112] or [999], with each number a tel: link. Other words stay plain text. */
+  function fillNumberText(el, text) {
+    String(text).split(/(\s+or\s+|\s+and\s+|\s*\/\s*)/).forEach(function (part) {
+      if (!part) return;
+      if (/^\s*(or|and|\/)\s*$/.test(part)) {
+        var sep = document.createElement('span');
+        sep.className = 'hl-or';
+        sep.textContent = part.trim() === '/' ? 'or' : part.trim();
+        el.appendChild(sep);
+      } else if (/^\(?\+?[\d\s()\-]{2,20}$/.test(part.trim()) && /\d/.test(part)) {
+        var a = document.createElement('a');
+        a.className = 'hl-number';
+        a.href = 'tel:' + part.replace(/[^\d+]/g, '');
+        a.textContent = part.trim();
+        el.appendChild(a);
+      } else {
+        var t = document.createElement('span');
+        t.textContent = part.trim();
+        el.appendChild(t);
+      }
+    });
+  }
+
   function showHelpline(country, typed) {
     var res = document.getElementById('helplineResult');
     var typedClean = cleanCountryText(typed || '');
@@ -1129,12 +1417,19 @@
     }
 
     var label = country || typedClean;
+    var nums = country ? EMERGENCY[country] : null;
 
     // textContent only, so typed text can never become HTML
     document.getElementById('hlCountry').textContent = label;
+    document.getElementById('hlMissing').hidden = !!nums;
+    renderNumbers(nums);
+
     var search = document.getElementById('hlSearch');
     search.href = googleHelplineUrl(label);
-    search.textContent = 'Find the emergency number for ' + label + ' ↗';
+    search.textContent = nums ? 'Online? Double-check on Google ↗' : 'Find the emergency number for ' + label + ' ↗';
+    document.getElementById('hlTip').textContent = nums
+      ? 'Numbers are saved in this page, so they work without internet. They come from Wikipedia and can change, so check online when you can.'
+      : 'Search results aren\'t checked by Safe Space. Look for an official or government website.';
 
     res.style.display = 'block';
     res.style.animation = 'none';
