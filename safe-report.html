@@ -182,6 +182,18 @@
   .country-select-wrap { position: relative; }
   .country-select-wrap select { width: 100%; padding: 12px 42px 12px 15px; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 14px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); font-family: var(--font); font-size: 14px; font-weight: 400; color: var(--text); outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; box-shadow: 0 2px 10px rgba(175,140,205,0.07), 0 1px 0 rgba(255,255,255,0.82) inset; transition: border-color 0.2s, box-shadow 0.2s; }
   .country-select-wrap select:focus { border-color: var(--input-focus-border); background: rgba(255,255,255,0.68); box-shadow: var(--input-focus-shadow), 0 1px 0 rgba(255,255,255,0.9) inset; }
+  .country-select-wrap input {
+    width: 100%; padding: 12px 15px; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 14px;
+    font-family: var(--font); font-size: 14px; color: var(--text); outline: none;
+    box-shadow: 0 2px 10px rgba(175,140,205,0.07), 0 1px 0 rgba(255,255,255,0.82) inset; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .country-select-wrap input::placeholder { color: var(--text-soft); }
+  .country-select-wrap input:focus { border-color: var(--input-focus-border); background: rgba(255,255,255,0.68); box-shadow: var(--input-focus-shadow), 0 1px 0 rgba(255,255,255,0.9) inset; }
+  .hl-missing { font-size: 13px; color: var(--text-mid); line-height: 1.5; margin-bottom: 10px; }
+  .hl-missing[hidden], .helpline-note[hidden] { display: none; }
+  .hl-search { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: #6e1090; text-decoration: none; background: rgba(188,105,195,0.12); border: 1.5px solid rgba(188,105,195,0.38); border-radius: 11px; padding: 8px 13px; }
+  .hl-search:hover { background: rgba(188,105,195,0.2); }
+  .hl-search-tip { font-size: 11px; color: var(--text-soft); margin-top: 7px; line-height: 1.45; }
   .select-arrow { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-soft); width: 18px; height: 18px; display: flex; align-items: center; }
   .select-arrow svg { width: 18px; height: 18px; }
   .helpline-result { margin-top: 14px; background: rgba(185,220,255,0.18); border: 1.5px solid rgba(145,195,245,0.4); border-radius: 16px; padding: 16px 18px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset; animation: fadeIn 0.35s ease both; }
@@ -456,19 +468,19 @@
 
     <div class="helpline-section">
       <p class="helpline-intro">If you feel unsafe right now, please tell a grown-up straight away.</p>
-      <p class="helpline-sub">Select your country to find your local helpline number.</p>
+      <p class="helpline-sub">Type your country to find your local helpline number.</p>
       <div class="country-select-wrap">
-        <select id="countrySelect" aria-label="Select your country">
-          <option value="">Select your country…</option>
-        </select>
-        <div class="select-arrow" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
+        <input type="text" id="countryInput" list="countryList" autocomplete="off" spellcheck="false"
+               maxlength="60" placeholder="e.g. france, UK, new zealand" aria-label="Your country">
+        <datalist id="countryList"></datalist>
       </div>
       <div class="helpline-result" id="helplineResult" style="display:none;" role="region" aria-live="polite" aria-label="Helpline information">
         <div class="helpline-country" id="hlCountry"></div>
         <div class="helpline-lines" id="hlLines"></div>
-        <p class="helpline-note">Lines are free and confidential. You can also speak to a parent, carer or teacher.</p>
+        <p class="hl-missing" id="hlMissing" hidden>We don't have a number saved for that country yet. Try a search instead:</p>
+        <p class="helpline-note" id="hlNote">Lines are free and confidential. You can also speak to a parent, carer or teacher.</p>
+        <a class="hl-search" id="hlSearch" target="_blank" rel="noopener noreferrer"></a>
+        <p class="hl-search-tip">Search results aren't checked by Safe Space. Look for an official or government website.</p>
       </div>
     </div>
 
@@ -905,8 +917,8 @@
       el.classList.remove('selected');
       el.setAttribute('aria-pressed', 'false');
     });
-    var csel = document.getElementById('countrySelect');
-    if (csel) csel.value = '';
+    var cinput = document.getElementById('countryInput');
+    if (cinput) cinput.value = '';
     var res = document.getElementById('helplineResult');
     if (res) res.style.display = 'none';
     currentStep = 0;
@@ -1055,30 +1067,92 @@
     "Zimbabwe":              [{ name: "Childline",                        number: "116" }]
   };
 
-  // Populate dropdown safely — no innerHTML
-  var csel = document.getElementById('countrySelect');
+  // ── Country search ────────────────────────────────────────────────────────
+  // Kids can type their country in any case ("FRANCE", "france", "FrAnCe").
+  // We match it to our list, and always offer a SafeSearch Google link too.
+
+  /** Lower-case, remove accents and punctuation, tidy spaces: "  Côte  d'Ivoire " -> "cote divoire" */
+  function normCountry(s) {
+    return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9 ]/g, '')
+      .replace(/\s+/g, ' ').trim().replace(/^the /, '');
+  }
+
+  // Other names people might type
+  var COUNTRY_ALIASES = {
+    'uk': 'United Kingdom', 'britain': 'United Kingdom', 'great britain': 'United Kingdom',
+    'england': 'United Kingdom', 'scotland': 'United Kingdom', 'wales': 'United Kingdom', 'northern ireland': 'United Kingdom',
+    'us': 'United States', 'usa': 'United States', 'america': 'United States', 'united states of america': 'United States',
+    'uae': 'United Arab Emirates', 'emirates': 'United Arab Emirates', 'dubai': 'United Arab Emirates',
+    'holland': 'Netherlands', 'the netherlands': 'Netherlands', 'nz': 'New Zealand', 'aotearoa': 'New Zealand',
+    'korea': 'South Korea', 'republic of korea': 'South Korea', 'czechia': 'Czech Republic',
+    'north macedonia': 'Macedonia', 'turkiye': 'Turkey', 'deutschland': 'Germany', 'espana': 'Spain',
+    'brasil': 'Brazil', 'bosnia': 'Bosnia and Herzegovina', 'trinidad': 'Trinidad & Tobago', 'antigua': 'Antigua & Barbuda',
+    'viet nam': 'Vietnam', 'russian federation': 'Russia', 'ksa': 'Saudi Arabia', 'oz': 'Australia'
+  };
+
+  var COUNTRY_INDEX = {};
+  Object.keys(HELPLINES).forEach(function (c) { COUNTRY_INDEX[normCountry(c)] = c; });
+  Object.keys(COUNTRY_ALIASES).forEach(function (a) { COUNTRY_INDEX[normCountry(a)] = COUNTRY_ALIASES[a]; });
+
+  function findCountry(typed) {
+    return COUNTRY_INDEX[normCountry(typed)] || null;
+  }
+
+  // Suggestions list under the box (textContent/value only — no innerHTML)
+  var clist = document.getElementById('countryList');
   Object.keys(HELPLINES).sort().forEach(function (country) {
     var opt = document.createElement('option');
     opt.value = country;
-    opt.textContent = country; // textContent, not innerHTML
-    csel.appendChild(opt);
+    clist.appendChild(opt);
   });
 
-  csel.addEventListener('change', function () {
-    showHelpline(this.value);
+  /** Google link with SafeSearch on. Only letters, spaces and a few symbols go into the search. */
+  function cleanCountryText(s) {
+    return String(s).replace(/[^\p{L}\p{M} '&.-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+  }
+
+  function googleHelplineUrl(countryText) {
+    return 'https://www.google.com/search?safe=active&q=' +
+      encodeURIComponent('national child helpline ' + cleanCountryText(countryText) + ' phone number');
+  }
+
+  var cinputEl = document.getElementById('countryInput');
+
+  // While typing: show numbers as soon as a country matches
+  cinputEl.addEventListener('input', function () {
+    var match = findCountry(this.value);
+    if (match) showHelpline(match, this.value);
+    else document.getElementById('helplineResult').style.display = 'none'; // still typing
   });
 
-  function showHelpline(country) {
+  // When they press Enter or leave the box: if no match, offer the search
+  cinputEl.addEventListener('change', function () {
+    showHelpline(findCountry(this.value), this.value);
+  });
+  cinputEl.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); showHelpline(findCountry(this.value), this.value); }
+  });
+
+  function showHelpline(country, typed) {
     var res = document.getElementById('helplineResult');
-    if (!country || !HELPLINES[country]) {
+    var typedClean = cleanCountryText(typed || '');
+    if (!country && normCountry(typedClean).length < 2) {
       res.style.display = 'none';
       return;
     }
 
-    var lines = HELPLINES[country];
+    var lines = country ? HELPLINES[country] : [];
+    var label = country || typedClean;
 
     // Set country label safely
-    document.getElementById('hlCountry').textContent = country;
+    document.getElementById('hlCountry').textContent = label;
+    document.getElementById('hlMissing').hidden = !!country;
+    document.getElementById('hlNote').hidden = !country;
+
+    var search = document.getElementById('hlSearch');
+    search.href = googleHelplineUrl(label);
+    search.textContent = (country ? 'Double-check on Google ↗' : 'Search Google for a helpline in ' + label + ' ↗');
 
     // Build lines using DOM methods — no innerHTML with user/data values
     var container = document.getElementById('hlLines');
