@@ -189,6 +189,17 @@
   }
   .country-select-wrap input::placeholder { color: var(--text-soft); }
   .country-select-wrap input:focus { border-color: var(--input-focus-border); background: rgba(255,255,255,0.68); box-shadow: var(--input-focus-shadow), 0 1px 0 rgba(255,255,255,0.9) inset; }
+  /* Country suggestions: sits inside the card, under the box, in the app's style */
+  .country-suggest {
+    list-style: none; margin: 6px 0 0; padding: 5px; max-height: 232px; overflow-y: auto;
+    background: rgba(255,255,255,0.72); border: 1.5px solid var(--input-border); border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(175,140,205,0.16), 0 1px 0 rgba(255,255,255,0.9) inset;
+    animation: fadeIn 0.15s ease both;
+  }
+  .country-suggest[hidden] { display: none; }
+  .country-suggest li { padding: 9px 12px; border-radius: 10px; font-size: 14px; color: var(--text-mid); cursor: pointer; }
+  .country-suggest li strong { color: var(--pill-sel-text); font-weight: 700; }
+  .country-suggest li:hover, .country-suggest li.active { background: var(--pill-sel-bg); color: var(--text); }
   .hl-missing { font-size: 13px; color: var(--text-mid); line-height: 1.5; margin-bottom: 10px; }
   .hl-missing[hidden], .helpline-note[hidden] { display: none; }
   .hl-search { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: #6e1090; text-decoration: none; background: rgba(188,105,195,0.12); border: 1.5px solid rgba(188,105,195,0.38); border-radius: 11px; padding: 8px 13px; }
@@ -470,9 +481,10 @@
       <p class="helpline-intro">If you feel unsafe right now, please tell a grown-up straight away.</p>
       <p class="helpline-sub">Type your country to find your local helpline number.</p>
       <div class="country-select-wrap">
-        <input type="text" id="countryInput" list="countryList" autocomplete="off" spellcheck="false"
-               maxlength="60" placeholder="e.g. france, UK, new zealand" aria-label="Your country">
-        <datalist id="countryList"></datalist>
+        <input type="text" id="countryInput" autocomplete="off" spellcheck="false"
+               maxlength="60" placeholder="e.g. france, UK, new zealand" aria-label="Your country"
+               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="countrySuggest">
+        <ul class="country-suggest" id="countrySuggest" role="listbox" aria-label="Matching countries" hidden></ul>
       </div>
       <div class="helpline-result" id="helplineResult" style="display:none;" role="region" aria-live="polite" aria-label="Helpline information">
         <div class="helpline-country" id="hlCountry"></div>
@@ -1099,13 +1111,7 @@
     return COUNTRY_INDEX[normCountry(typed)] || null;
   }
 
-  // Suggestions list under the box (textContent/value only — no innerHTML)
-  var clist = document.getElementById('countryList');
-  Object.keys(HELPLINES).sort().forEach(function (country) {
-    var opt = document.createElement('option');
-    opt.value = country;
-    clist.appendChild(opt);
-  });
+  var ALL_COUNTRIES = Object.keys(HELPLINES).sort();
 
   /** Google link with SafeSearch on. Only letters, spaces and a few symbols go into the search. */
   function cleanCountryText(s) {
@@ -1118,20 +1124,113 @@
   }
 
   var cinputEl = document.getElementById('countryInput');
+  var suggestEl = document.getElementById('countrySuggest');
+  var suggestItems = [];   // countries currently listed
+  var activeIdx = -1;      // highlighted row for arrow keys
 
-  // While typing: show numbers as soon as a country matches
+  /** Countries starting with what was typed come first, then ones containing it, then nicknames. */
+  function matchCountries(typed) {
+    var q = normCountry(typed);
+    if (!q) return [];
+    var starts = [], contains = [], seen = {};
+    ALL_COUNTRIES.forEach(function (c) {
+      var n = normCountry(c);
+      if (n.indexOf(q) === 0) starts.push(c);
+      else if (q.length >= 2 && n.indexOf(q) !== -1) contains.push(c);
+    });
+    var out = starts.concat(contains);
+    out.forEach(function (c) { seen[c] = true; });
+    Object.keys(COUNTRY_ALIASES).forEach(function (a) {
+      var c = COUNTRY_ALIASES[a];
+      if (!seen[c] && normCountry(a).indexOf(q) === 0) { out.push(c); seen[c] = true; }
+    });
+    return out.slice(0, 8);
+  }
+
+  function closeSuggest() {
+    suggestEl.hidden = true;
+    suggestEl.textContent = '';
+    suggestItems = [];
+    activeIdx = -1;
+    cinputEl.setAttribute('aria-expanded', 'false');
+    cinputEl.removeAttribute('aria-activedescendant');
+  }
+
+  function setActive(i) {
+    activeIdx = i;
+    [].forEach.call(suggestEl.children, function (li, j) {
+      var on = j === i;
+      li.classList.toggle('active', on);
+      li.setAttribute('aria-selected', String(on));
+      if (on) { cinputEl.setAttribute('aria-activedescendant', li.id); li.scrollIntoView({ block: 'nearest' }); }
+    });
+  }
+
+  /** Build the list with DOM nodes only; the matching letters are shown in bold. */
+  function renderSuggest(typed) {
+    var list = matchCountries(typed);
+    // Hide the list once the box already holds an exact country name
+    if (!list.length || (list.length === 1 && normCountry(list[0]) === normCountry(typed))) { closeSuggest(); return; }
+    suggestEl.textContent = '';
+    suggestItems = list;
+    activeIdx = -1;
+    var q = normCountry(typed);
+    list.forEach(function (c, i) {
+      var li = document.createElement('li');
+      li.id = 'country-opt-' + i;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', 'false');
+      var at = normCountry(c) === c.toLowerCase() ? c.toLowerCase().indexOf(q) : -1;
+      if (at !== -1) {
+        li.appendChild(document.createTextNode(c.slice(0, at)));
+        var b = document.createElement('strong');
+        b.textContent = c.slice(at, at + q.length);
+        li.appendChild(b);
+        li.appendChild(document.createTextNode(c.slice(at + q.length)));
+      } else {
+        li.textContent = c;
+      }
+      // mousedown (not click) so the box keeps focus while choosing
+      li.addEventListener('mousedown', function (e) { e.preventDefault(); chooseCountry(c); });
+      suggestEl.appendChild(li);
+    });
+    suggestEl.hidden = false;
+    cinputEl.setAttribute('aria-expanded', 'true');
+  }
+
+  function chooseCountry(c) {
+    cinputEl.value = c;
+    closeSuggest();
+    showHelpline(c, c);
+  }
+
+  // While typing: update suggestions, and show numbers as soon as a country matches
   cinputEl.addEventListener('input', function () {
+    renderSuggest(this.value);
     var match = findCountry(this.value);
     if (match) showHelpline(match, this.value);
     else document.getElementById('helplineResult').style.display = 'none'; // still typing
   });
 
-  // When they press Enter or leave the box: if no match, offer the search
-  cinputEl.addEventListener('change', function () {
-    showHelpline(findCountry(this.value), this.value);
-  });
   cinputEl.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); showHelpline(findCountry(this.value), this.value); }
+    var open = !suggestEl.hidden && suggestItems.length;
+    if (e.key === 'ArrowDown' && open) {
+      e.preventDefault(); setActive((activeIdx + 1) % suggestItems.length);
+    } else if (e.key === 'ArrowUp' && open) {
+      e.preventDefault(); setActive(activeIdx <= 0 ? suggestItems.length - 1 : activeIdx - 1);
+    } else if (e.key === 'Escape' && open) {
+      e.preventDefault(); closeSuggest();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (open && activeIdx >= 0) chooseCountry(suggestItems[activeIdx]);
+      else { closeSuggest(); showHelpline(findCountry(this.value), this.value); }
+    }
+  });
+
+  // Leaving the box: close the list; if nothing matched, offer the search
+  cinputEl.addEventListener('blur', function () {
+    closeSuggest();
+    if (this.value.trim()) showHelpline(findCountry(this.value), this.value);
   });
 
   function showHelpline(country, typed) {
