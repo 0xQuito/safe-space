@@ -16,5 +16,5 @@ Or go straight to: **https://0xquito.github.io/safe-space/**
 
 - Helps a child write down what happened, step by step, in simple language
 - Lets them save the report as a PDF or email it to a parent, teacher or someone they trust
-- Shows helpline numbers for their country
+- Helps them look up their country's emergency phone number
 - Keeps everything private: nothing is sent anywhere unless they choose to share it

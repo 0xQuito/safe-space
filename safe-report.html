@@ -204,16 +204,12 @@
   .hl-missing[hidden], .helpline-note[hidden] { display: none; }
   .hl-search { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: #6e1090; text-decoration: none; background: rgba(188,105,195,0.12); border: 1.5px solid rgba(188,105,195,0.38); border-radius: 11px; padding: 8px 13px; }
   .hl-search:hover { background: rgba(188,105,195,0.2); }
+  .hl-gap { margin-top: 14px; }
   .hl-search-tip { font-size: 11px; color: var(--text-soft); margin-top: 7px; line-height: 1.45; }
   .select-arrow { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-soft); width: 18px; height: 18px; display: flex; align-items: center; }
   .select-arrow svg { width: 18px; height: 18px; }
   .helpline-result { margin-top: 14px; background: rgba(185,220,255,0.18); border: 1.5px solid rgba(145,195,245,0.4); border-radius: 16px; padding: 16px 18px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset; animation: fadeIn 0.35s ease both; }
   .helpline-country { font-size: 11px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
-  .helpline-lines { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-  .helpline-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .hl-name { font-size: 13px; color: var(--text-soft); font-weight: 500; flex: 1; min-width: 0; }
-  .hl-number { font-size: 15px; font-weight: 700; color: #194f82; letter-spacing: 0.2px; white-space: nowrap; background: rgba(255,255,255,0.55); border: 1.5px solid rgba(145,195,245,0.45); border-radius: 10px; padding: 5px 12px; text-decoration: none; display: inline-block; transition: background 0.18s; }
-  .hl-number:hover { background: rgba(255,255,255,0.85); }
   .helpline-note { font-size: 11.5px; color: var(--text-soft); line-height: 1.5; }
 
   /* Save / print buttons on the success screen */
@@ -479,19 +475,18 @@
 
     <div class="helpline-section">
       <p class="helpline-intro">If you feel unsafe right now, please tell a grown-up straight away.</p>
-      <p class="helpline-sub">Type your country to find your local helpline number.</p>
+      <p class="helpline-sub">Type your country to find its emergency phone number.</p>
       <div class="country-select-wrap">
         <input type="text" id="countryInput" autocomplete="off" spellcheck="false"
                maxlength="60" placeholder="e.g. france, UK, new zealand" aria-label="Your country"
                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="countrySuggest">
         <ul class="country-suggest" id="countrySuggest" role="listbox" aria-label="Matching countries" hidden></ul>
       </div>
-      <div class="helpline-result" id="helplineResult" style="display:none;" role="region" aria-live="polite" aria-label="Helpline information">
+      <div class="helpline-result" id="helplineResult" style="display:none;" role="region" aria-live="polite" aria-label="Emergency number search">
         <div class="helpline-country" id="hlCountry"></div>
-        <div class="helpline-lines" id="hlLines"></div>
-        <p class="hl-missing" id="hlMissing" hidden>We don't have a number saved for that country yet. Try a search instead:</p>
-        <p class="helpline-note" id="hlNote">Lines are free and confidential. You can also speak to a parent, carer or teacher.</p>
+        <p class="hl-missing">Tap below to see the emergency phone number on Google.</p>
         <a class="hl-search" id="hlSearch" target="_blank" rel="noopener noreferrer"></a>
+        <p class="helpline-note hl-gap">Only call the emergency number if you or someone else is in danger right now. If you're not in danger but feel worried, talk to a parent, carer or teacher.</p>
         <p class="hl-search-tip">Search results aren't checked by Safe Space. Look for an official or government website.</p>
       </div>
     </div>
@@ -520,10 +515,6 @@
       .replace(/'/g, '&#x27;');
   }
 
-  /** Sanitize a phone number so only safe characters remain for tel: links. */
-  function sanitizeTel(num) {
-    return num.replace(/[^0-9+\-\s()]/g, '');
-  }
 
   /** Read and trim a text input safely. Returns empty string if not found. */
   function val(id) {
@@ -940,144 +931,36 @@
     goTo(0);
   }
 
-  // ── Global helpline data ──────────────────────────────────────────────────
-  // Numbers sourced from CRIN / Child Helpline International (crin.org)
+  // ── Countries ─────────────────────────────────────────────────────────────
+  // Names only. We don't store phone numbers: the page links to a Google search
+  // for each country's emergency number, so it's never out of date.
 
-  var HELPLINES = {
-    "Albania":               [{ name: "Alo 116",                         number: "116" }],
-    "Algeria":               [{ name: "Je t'ecoute",                     number: "3033" }],
-    "Antigua & Barbuda":     [{ name: "Friends Hotline",                  number: "800 4357" }],
-    "Argentina":             [{ name: "Linea 102",                        number: "102" }],
-    "Armenia":               [{ name: "Child Protection Hotline",         number: "+374 60 52-66-60" }],
-    "Aruba":                 [{ name: "Fundacion Telefon pa Hubentud",    number: "131" }],
-    "Australia":             [{ name: "Kids Help Line",                   number: "1800 55 1800" }],
-    "Austria":               [{ name: "Rat auf Draht",                    number: "147" }],
-    "Azerbaijan":            [{ name: "ETIMAD Sumgayit",                  number: "23131" }],
-    "Belarus":               [{ name: "National helpline",                number: "8-801-100-8801" }],
-    "Belgium":               [{ name: "Kinder- en Jongerentelefoon",      number: "0800 15 111" },
-                              { name: "ChildFocus",                       number: "110" },
-                              { name: "Ecoute Enfants",                   number: "103" }],
-    "Bhutan":                [{ name: "Women and Child Helpline",         number: "1098" }],
-    "Bolivia":               [{ name: "Linea 156",                        number: "156" }],
-    "Bosnia and Herzegovina":[{ name: "Plavo Telefon",                    number: "080 05 03 05" }],
-    "Botswana":              [{ name: "Childline Botswana",               number: "3900 900" }],
-    "Brazil":                [{ name: "Disque 100",                       number: "100" },
-                              { name: "123Alo!",                          number: "0800 0 123 123" }],
-    "Brunei":                [{ name: "Helpline Kebajikan",               number: "141" }],
-    "Bulgaria":              [{ name: "Animus Association",               number: "116 111" }],
-    "Burkina Faso":          [{ name: "Allo",                             number: "116" }],
-    "Cambodia":              [{ name: "Child Helpline Cambodia",          number: "1280" }],
-    "Cameroon":              [{ name: "Lignes Vertes",                    number: "00237 222 23 25 50" }],
-    "Canada":                [{ name: "Kids Help Phone",                  number: "1-800-668-6868" },
-                              { name: "Tel-jeunes",                       number: "1-800-361-5085" }],
-    "Chile":                 [{ name: "Fono Niños",                       number: "147" },
-                              { name: "Linea libre",                      number: "1515" }],
-    "Colombia":              [{ name: "Línea 106",                        number: "106" },
-                              { name: "Línea de protección",              number: "141" }],
-    "Costa Rica":            [{ name: "Pani",                             number: "1147" }],
-    "Croatia":               [{ name: "Hrabri telefon",                   number: "116 111" }],
-    "Cuba":                  [{ name: "Línea de Emergencia",              number: "106" }],
-    "Cyprus":                [{ name: "SPAVO",                            number: "116 000" }],
-    "Czech Republic":        [{ name: "The Safety Line",                  number: "116 111" }],
-    "Denmark":               [{ name: "Børns Vilkår",                     number: "116 111" }],
-    "Egypt":                 [{ name: "Child Helpline",                   number: "160-00" }],
-    "Estonia":               [{ name: "Estonian Advice Centre",           number: "116 111" }],
-    "Fiji":                  [{ name: "National Child Helpline",          number: "1325" }],
-    "Finland":               [{ name: "Child and Youth Phone",            number: "116 111" }],
-    "France":                [{ name: "Allô Enfance En Danger",           number: "119" }],
-    "Gambia":                [{ name: "199 Helpline",                     number: "199" }],
-    "Georgia":               [{ name: "Public Health Foundation",         number: "116 111" }],
-    "Germany":               [{ name: "Nummer gegen Kummer",              number: "116 111" }],
-    "Greece":                [{ name: "Hamogelo",                         number: "116 111" }],
-    "Guinea":                [{ name: "Aguias",                           number: "116" }],
-    "Haiti":                 [{ name: "Jurimedia",                        number: "02755 1122" }],
-    "Hong Kong":             [{ name: "Against Child Abuse",              number: "+852 2755 1122" }],
-    "Hungary":               [{ name: "Kek Vonal",                        number: "116 111" }],
-    "Iceland":               [{ name: "Red Cross",                        number: "1717" }],
-    "India":                 [{ name: "Childline India",                  number: "1098" }],
-    "Indonesia":             [{ name: "TePSA",                            number: "1500771" }],
-    "Iran":                  [{ name: "Sedaye Yara",                      number: "42152" }],
-    "Iraq":                  [{ name: "Ministry of Labour",               number: "116" }],
-    "Ireland":               [{ name: "Child Line Ireland",               number: "1800 66 66 66" }],
-    "Israel":                [{ name: "ERAN",                             number: "1201" }],
-    "Italy":                 [{ name: "Telefono Azzurro",                 number: "19696" }],
-    "Jamaica":               [{ name: "Children's Coalition",             number: "888-429-5273" }],
-    "Japan":                 [{ name: "Childline Support Center",         number: "0120 99 7777" }],
-    "Jordan":                [{ name: "Child Helpline",                   number: "110" }],
-    "Kazakhstan":            [{ name: "Telefon 150",                      number: "150" }],
-    "Kenya":                 [{ name: "Childline Kenya",                  number: "116" }],
-    "Kyrgyzstan":            [{ name: "Child Rights Defenders League",    number: "+996 312 66 25 87" }],
-    "Latvia":                [{ name: "Child and Adolescent Helpline",    number: "116 111" }],
-    "Lesotho":               [{ name: "Helpline",                         number: "800 22 345" }],
-    "Liechtenstein":         [{ name: "147 sote",                         number: "147" }],
-    "Lithuania":             [{ name: "Vaiku Linjia",                     number: "116 111" }],
-    "Luxembourg":            [{ name: "Kanner-Jugendtelefon",             number: "116 111" }],
-    "Macedonia":             [{ name: "SOS Helpline",                     number: "0800 122 22" }],
-    "Madagascar":            [{ name: "Ligne 511",                        number: "511" }],
-    "Malawi":                [{ name: "Tithandizane Helpline",            number: "116" }],
-    "Maldives":              [{ name: "Child Helpline",                   number: "1412" }],
-    "Malta":                 [{ name: "Supportline",                      number: "179" }],
-    "Mauritius":             [{ name: "Child Helpline",                   number: "214 2451" }],
-    "Mexico":                [{ name: "Teléfono ANAR México",             number: "01800 911-1119" }],
-    "Moldova":               [{ name: "Telefon Copilului",                number: "116 111" }],
-    "Mongolia":              [{ name: "Child Helpline",                   number: "108" }],
-    "Mozambique":            [{ name: "Linha Fala Crianca",               number: "116" }],
-    "Myanmar":               [{ name: "Shwe Yamin Foundation",            number: "+95 1 525169" }],
-    "Namibia":               [{ name: "Lifeline/Childline Namibia",       number: "116" }],
-    "Nepal":                 [{ name: "Child Workers in Nepal",           number: "1098" }],
-    "Netherlands":           [{ name: "De Kindertelefoon",                number: "0800 0432" }],
-    "New Zealand":           [{ name: "What's Up?",                       number: "0800 942 8787" },
-                              { name: "Youthline",                        number: "0800 376 633" },
-                              { name: "Kidsline",                         number: "0800 543 754" }],
-    "Nicaragua":             [{ name: "Linea 133",                        number: "133" }],
-    "Nigeria":               [{ name: "Cece Yara Foundation",             number: "0800 800 8001" }],
-    "Norway":                [{ name: "Alarmtelefonen",                   number: "116 111" }],
-    "Pakistan":              [{ name: "Madadgaar National Helpline",      number: "1098" }],
-    "Palestine":             [{ name: "Sawa Child Helpline",              number: "121" }],
-    "Paraguay":              [{ name: "FONO Ayuda",                       number: "147" }],
-    "Peru":                  [{ name: "Fundación ANAR",                   number: "0800 22210" },
-                              { name: "Línea 100",                        number: "100" }],
-    "Philippines":           [{ name: "Bantay Bata",                      number: "163" }],
-    "Poland":                [{ name: "116111.pl",                        number: "116 111" }],
-    "Portugal":              [{ name: "SOS Criança",                      number: "116 111" }],
-    "Qatar":                 [{ name: "Aman",                             number: "919" }],
-    "Romania":               [{ name: "Telefonul Copilului",              number: "116 111" }],
-    "Russia":                [{ name: "Telefon Doveria",                  number: "8-800-2000-122" }],
-    "Saudi Arabia":          [{ name: "Child Helpline",                   number: "116 111" }],
-    "Senegal":               [{ name: "Allo",                             number: "116" }],
-    "Serbia":                [{ name: "NADEL",                            number: "116 111" }],
-    "Singapore":             [{ name: "Tinkle Friend",                    number: "1800 2744 788" }],
-    "Slovakia":              [{ name: "Linka detskej Istoty",             number: "116 111" }],
-    "Slovenia":              [{ name: "TOM Telefon",                      number: "116 111" }],
-    "South Africa":          [{ name: "Childline South Africa",           number: "0800 055 555" }],
-    "South Korea":           [{ name: "Youth Hotline",                    number: "1388" }],
-    "Spain":                 [{ name: "Fundación ANAR",                   number: "900 20 20 10" }],
-    "Sri Lanka":             [{ name: "Childline Sri Lanka",              number: "1629" }],
-    "Sudan":                 [{ name: "Child Helpline",                   number: "9696" }],
-    "Suriname":              [{ name: "Kinder- en Jongerentelefoon",      number: "123" }],
-    "Sweden":                [{ name: "BRIS",                             number: "116 111" }],
-    "Switzerland":           [{ name: "Beratung + Hilfe",                 number: "147" }],
-    "Taiwan":                [{ name: "113 Protection Hotline",           number: "113" }],
-    "Tanzania":              [{ name: "C-Sema",                           number: "116" }],
-    "Thailand":              [{ name: "ChildLine Thailand",               number: "1387" }],
-    "Togo":                  [{ name: "Allo",                             number: "1011" }],
-    "Trinidad & Tobago":     [{ name: "ChildLine",                        number: "131" }],
-    "Turkey":                [{ name: "Genclik Destek Hatti",             number: "0850 455 00 70" }],
-    "Uganda":                [{ name: "Sauti",                            number: "116" }],
-    "Ukraine":               [{ name: "La Strada Ukraine",                number: "116 111" }],
-    "United Arab Emirates":  [{ name: "Dubai Foundation for Women & Children", number: "04-6060300" }],
-    "United Kingdom":        [{ name: "ChildLine UK",                     number: "0800 1111" },
-                              { name: "Samaritans",                       number: "116 123" },
-                              { name: "The Mix",                          number: "0808 808 4994" }],
-    "United States":         [{ name: "Childhelp USA",                    number: "1-800-422-4453" },
-                              { name: "Crisis Text Line",                  number: "Text 741741" },
-                              { name: "Boys Town Hotline",                number: "800-448-3000" }],
-    "Uruguay":               [{ name: "Linea Azul",                       number: "800 50 50" }],
-    "Vanuatu":               [{ name: "Youtline",                         number: "087777" }],
-    "Vietnam":               [{ name: "Child Helpline Vietnam",           number: "111" }],
-    "Zambia":                [{ name: "Childline",                        number: "116" }],
-    "Zimbabwe":              [{ name: "Childline",                        number: "116" }]
-  };
+  var COUNTRIES = [
+    'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia',
+    'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium',
+    'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria',
+    'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad',
+    'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czechia',
+    'Democratic Republic of the Congo', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor',
+    'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji',
+    'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala',
+    'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India',
+    'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan',
+    'Kazakhstan', 'Kenya', 'Kiribati', 'Kosovo', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho',
+    'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Macau', 'Madagascar', 'Malawi', 'Malaysia',
+    'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova',
+    'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal',
+    'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway',
+    'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines',
+    'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis',
+    'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe',
+    'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+    'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan',
+    'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga',
+    'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine',
+    'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City',
+    'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
+  ];
 
   // ── Country search ────────────────────────────────────────────────────────
   // Kids can type their country in any case ("FRANCE", "france", "FrAnCe").
@@ -1097,21 +980,25 @@
     'us': 'United States', 'usa': 'United States', 'america': 'United States', 'united states of america': 'United States',
     'uae': 'United Arab Emirates', 'emirates': 'United Arab Emirates', 'dubai': 'United Arab Emirates',
     'holland': 'Netherlands', 'the netherlands': 'Netherlands', 'nz': 'New Zealand', 'aotearoa': 'New Zealand',
-    'korea': 'South Korea', 'republic of korea': 'South Korea', 'czechia': 'Czech Republic',
-    'north macedonia': 'Macedonia', 'turkiye': 'Turkey', 'deutschland': 'Germany', 'espana': 'Spain',
-    'brasil': 'Brazil', 'bosnia': 'Bosnia and Herzegovina', 'trinidad': 'Trinidad & Tobago', 'antigua': 'Antigua & Barbuda',
-    'viet nam': 'Vietnam', 'russian federation': 'Russia', 'ksa': 'Saudi Arabia', 'oz': 'Australia'
+    'korea': 'South Korea', 'republic of korea': 'South Korea', 'czech republic': 'Czechia',
+    'macedonia': 'North Macedonia', 'turkiye': 'Turkey', 'deutschland': 'Germany', 'espana': 'Spain',
+    'brasil': 'Brazil', 'bosnia': 'Bosnia and Herzegovina', 'trinidad': 'Trinidad and Tobago', 'antigua': 'Antigua and Barbuda',
+    'viet nam': 'Vietnam', 'russian federation': 'Russia', 'ksa': 'Saudi Arabia', 'oz': 'Australia',
+    'cote divoire': 'Ivory Coast', 'timor leste': 'East Timor', 'swaziland': 'Eswatini', 'burma': 'Myanmar',
+    'drc': 'Democratic Republic of the Congo', 'dr congo': 'Democratic Republic of the Congo',
+    'cabo verde': 'Cape Verde', 'st lucia': 'Saint Lucia', 'st kitts': 'Saint Kitts and Nevis',
+    'vatican': 'Vatican City', 'holy see': 'Vatican City', 'persia': 'Iran', 'ceylon': 'Sri Lanka'
   };
 
   var COUNTRY_INDEX = {};
-  Object.keys(HELPLINES).forEach(function (c) { COUNTRY_INDEX[normCountry(c)] = c; });
+  COUNTRIES.forEach(function (c) { COUNTRY_INDEX[normCountry(c)] = c; });
   Object.keys(COUNTRY_ALIASES).forEach(function (a) { COUNTRY_INDEX[normCountry(a)] = COUNTRY_ALIASES[a]; });
 
   function findCountry(typed) {
     return COUNTRY_INDEX[normCountry(typed)] || null;
   }
 
-  var ALL_COUNTRIES = Object.keys(HELPLINES).sort();
+  var ALL_COUNTRIES = COUNTRIES.slice().sort();
 
   /** Google link with SafeSearch on. Only letters, spaces and a few symbols go into the search. */
   function cleanCountryText(s) {
@@ -1120,7 +1007,7 @@
 
   function googleHelplineUrl(countryText) {
     return 'https://www.google.com/search?safe=active&q=' +
-      encodeURIComponent('national child helpline ' + cleanCountryText(countryText) + ' phone number');
+      encodeURIComponent('emergency phone number ' + cleanCountryText(countryText));
   }
 
   var cinputEl = document.getElementById('countryInput');
@@ -1241,40 +1128,13 @@
       return;
     }
 
-    var lines = country ? HELPLINES[country] : [];
     var label = country || typedClean;
 
-    // Set country label safely
+    // textContent only, so typed text can never become HTML
     document.getElementById('hlCountry').textContent = label;
-    document.getElementById('hlMissing').hidden = !!country;
-    document.getElementById('hlNote').hidden = !country;
-
     var search = document.getElementById('hlSearch');
     search.href = googleHelplineUrl(label);
-    search.textContent = (country ? 'Double-check on Google ↗' : 'Search Google for a helpline in ' + label + ' ↗');
-
-    // Build lines using DOM methods — no innerHTML with user/data values
-    var container = document.getElementById('hlLines');
-    container.innerHTML = ''; // safe — we rebuild with DOM nodes only
-    lines.forEach(function (line) {
-      var row  = document.createElement('div');
-      row.className = 'helpline-line';
-
-      var nameSpan = document.createElement('span');
-      nameSpan.className = 'hl-name';
-      nameSpan.textContent = line.name; // textContent prevents XSS
-
-      var numLink = document.createElement('a');
-      numLink.className = 'hl-number';
-      // Sanitize tel: to only digits, +, -, spaces, parens
-      numLink.href = 'tel:' + sanitizeTel(line.number).replace(/\s/g, '');
-      numLink.textContent = line.number; // textContent prevents XSS
-      numLink.setAttribute('rel', 'noopener noreferrer');
-
-      row.appendChild(nameSpan);
-      row.appendChild(numLink);
-      container.appendChild(row);
-    });
+    search.textContent = 'Find the emergency number for ' + label + ' ↗';
 
     res.style.display = 'block';
     res.style.animation = 'none';
